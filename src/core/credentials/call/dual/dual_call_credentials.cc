@@ -59,10 +59,7 @@ DualCallCredentials::GetRequestMetadata(
       ->GetRequestMetadata(std::move(initial_metadata), args);
 }
 
-void DualCallCredentials::Orphaned() {
-  alts_credentials_->Unref();
-  tls_credentials_->Unref();
-}
+void DualCallCredentials::Orphaned() {}
 
 grpc_core::UniqueTypeName DualCallCredentials::Type() {
   static grpc_core::UniqueTypeName::Factory kFactory("Dual");
