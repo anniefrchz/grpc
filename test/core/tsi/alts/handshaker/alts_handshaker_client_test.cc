@@ -488,7 +488,7 @@ grpc_alts_credentials_options* CreateCredentialsOptions(
       versions, kMinRpcVersionMajor, kMinRpcVersionMinor));
 
   if (add_custom_record_protocol) {
-    options->next_protocols = {"bar", "foo"};
+    options->record_protocols = {"bar", "foo"};
   }
   return options;
 }

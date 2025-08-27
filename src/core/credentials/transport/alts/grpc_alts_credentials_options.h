@@ -39,7 +39,7 @@ typedef struct grpc_alts_credentials_options_vtable {
 struct grpc_alts_credentials_options {
   const struct grpc_alts_credentials_options_vtable* vtable;
   grpc_gcp_rpc_protocol_versions rpc_versions;
-  std::optional<std::vector<std::string>> next_protocols;
+  std::optional<std::vector<std::string>> record_protocols;
 };
 
 typedef struct target_service_account {

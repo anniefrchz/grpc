@@ -75,7 +75,7 @@ grpc_alts_credentials_options* grpc_alts_credentials_client_options_create(
   auto client_options = static_cast<grpc_alts_credentials_client_options*>(
       gpr_zalloc(sizeof(grpc_alts_credentials_client_options)));
   client_options->base.vtable = &vtable;
-  client_options->base.next_protocols = std::nullopt;
+  client_options->base.record_protocols = std::nullopt;
   return &client_options->base;
 }
 
@@ -105,7 +105,7 @@ static grpc_alts_credentials_options* alts_client_options_copy(
     node = node->next;
   }
 
-  new_options->next_protocols = options->next_protocols;
+  new_options->record_protocols = options->record_protocols;
 
   // Copy rpc protocol versions.
   grpc_gcp_rpc_protocol_versions_copy(&options->rpc_versions,
