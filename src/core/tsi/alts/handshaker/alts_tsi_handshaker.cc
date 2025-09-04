@@ -226,7 +226,8 @@ static tsi_result handshaker_result_create_zero_copy_grpc_protector(
                                 /*is_rekey=*/true),
       result->is_client,
       (tsi_security_level_to_string(TSI_INTEGRITY_ONLY) ==
-       std::string(security_level_prop->value.data, security_level_prop->value.length)),
+       std::string(security_level_prop->value.data,
+                   security_level_prop->value.length)),
       /*enable_extra_copy=*/false, max_output_protected_frame_size, protector);
   tsi_peer_destruct(peer);
   gpr_free(peer);
