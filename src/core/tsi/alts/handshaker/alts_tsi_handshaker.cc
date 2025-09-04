@@ -216,13 +216,20 @@ static tsi_result handshaker_result_create_zero_copy_grpc_protector(
   VLOG(2) << "After Frame Size Negotiation, maximum frame size used by frame "
              "protector equals "
           << *max_output_protected_frame_size;
-  tsi_result ok = alts_zero_copy_grpc_protector_create(
+  tsi_peer* peer = static_cast<tsi_peer*>(gpr_zalloc(sizeof(tsi_peer)));
+  tsi_result ok = handshaker_result_extract_peer(self, peer);
+  const tsi_peer_property* security_level_prop =
+      tsi_peer_get_property_by_name(peer, TSI_SECURITY_LEVEL_PEER_PROPERTY);
+  ok = alts_zero_copy_grpc_protector_create(
       grpc_core::GsecKeyFactory({reinterpret_cast<uint8_t*>(result->key_data),
                                  kAltsAes128GcmRekeyKeyLength},
                                 /*is_rekey=*/true),
       result->is_client,
-      /*is_integrity_only=*/false, /*enable_extra_copy=*/false,
-      max_output_protected_frame_size, protector);
+      (tsi_security_level_to_string(TSI_INTEGRITY_ONLY) ==
+       std::string(security_level_prop->value.data, security_level_prop->value.length)),
+      /*enable_extra_copy=*/false, max_output_protected_frame_size, protector);
+  tsi_peer_destruct(peer);
+  gpr_free(peer);
   if (ok != TSI_OK) {
     LOG(ERROR) << "Failed to create zero-copy grpc protector";
   }
