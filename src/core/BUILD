@@ -3500,10 +3500,12 @@ grpc_cc_library(
         "channel_args",
         "channel_fwd",
         "channel_stack_type",
+        "channelz_property_list",
         "interception_chain",
         "sync",
         "unique_type_name",
         "//:channel_stack_builder",
+        "//:channelz",
         "//:debug_location",
         "//:gpr",
         "//:gpr_platform",
@@ -8685,6 +8687,7 @@ grpc_cc_library(
     ],
     deps = [
         "bitset",
+        "channelz_property_list",
         "//:gpr_platform",
     ],
 )
@@ -8737,6 +8740,7 @@ grpc_cc_library(
         "absl/log",
     ],
     deps = [
+        "channelz_property_list",
         "chaotic_good_frame_header",
         "chaotic_good_serialize_little_endian",
     ],
@@ -10404,16 +10408,25 @@ grpc_cc_library(
     }),
     external_deps = [
         "absl/container:flat_hash_set",
+        "absl/status",
+        "@com_google_protobuf//upb/mem",
     ],
     deps = [
+        "channelz_text_encode",
+        "function_signature",
         "json_writer",
         "memory_usage",
         "single_set_ptr",
         "sync",
         "time",
         "//:channelz",
+        "//:channelz_service_upb",
+        "//:channelz_upb",
         "//:gpr",
         "//:grpc_trace",
+        "//:protobuf_any_upb",
+        "//:protobuf_any_upbdefs",
+        "//:protobuf_timestamp_upb",
     ],
 )
 
@@ -10437,6 +10450,7 @@ grpc_cc_library(
         "absl/strings",
         "absl/status",
         "absl/container:flat_hash_map",
+        "absl/time",
         "@com_google_protobuf//upb/mem",
         "@com_google_protobuf//upb/text",
     ],
@@ -10450,6 +10464,23 @@ grpc_cc_library(
         "//:gpr",
         "//:protobuf_any_upb",
         "//:protobuf_empty_upb",
+    ],
+)
+
+grpc_cc_library(
+    name = "channelz_text_encode",
+    srcs = ["channelz/text_encode.cc"],
+    hdrs = ["channelz/text_encode.h"],
+    external_deps = [
+        "@com_google_protobuf//upb/mem",
+        "@com_google_protobuf//upb/reflection",
+        "@com_google_protobuf//upb/text",
+    ],
+    deps = [
+        "no_destruct",
+        "//:channelz_property_list_upbdefs",
+        "//:channelz_service_upbdefs",
+        "//:channelz_upbdefs",
     ],
 )
 
