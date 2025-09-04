@@ -226,7 +226,8 @@ static tsi_result handshaker_result_create_zero_copy_grpc_protector(
                                 /*is_rekey=*/true),
       result->is_client,
       (tsi_security_level_to_string(TSI_INTEGRITY_ONLY) ==
-       std::string(security_level_prop->value.data, security_level_prop->value.length)),
+       std::string(security_level_prop->value.data,
+                   security_level_prop->value.length)),
       /*enable_extra_copy=*/false, max_output_protected_frame_size, protector);
   tsi_peer_destruct(peer);
   gpr_free(peer);
@@ -384,9 +385,11 @@ tsi_result alts_tsi_handshaker_result_create(grpc_gcp_HandshakerResp* resp,
   grpc_gcp_AltsContext* context = grpc_gcp_AltsContext_new(context_arena.ptr());
   grpc_gcp_AltsContext_set_application_protocol(context, application_protocol);
   grpc_gcp_AltsContext_set_record_protocol(context, record_protocol);
-  // ALTS currently only supports the security level of 2,
-  // which is "grpc_gcp_INTEGRITY_AND_PRIVACY".
-  grpc_gcp_AltsContext_set_security_level(context, 2);
+  grpc_gcp_AltsContext_set_security_level(
+      context, memcmp(ALTS_RECORD_INTEGRITY_ONLY_PROTOCOL, record_protocol.data,
+                      record_protocol.size)
+                   ? TSI_INTEGRITY_ONLY
+                   : TSI_PRIVACY_AND_INTEGRITY);
   grpc_gcp_AltsContext_set_peer_service_account(context, peer_service_account);
   grpc_gcp_AltsContext_set_local_service_account(context,
                                                  local_service_account);
