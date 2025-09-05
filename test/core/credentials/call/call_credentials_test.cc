@@ -845,7 +845,7 @@ TEST_F(CredentialsTest, TestComputeEngineCredsWithAltsSuccess) {
       "GoogleComputeEngineTokenFetcherCredentials{"
       "OAuth2TokenFetcherCredentials}";
   grpc_google_compute_engine_credentials_options options;
-  options->alts_hard_bound = true;
+  options.alts_hard_bound = true;
   grpc_call_credentials* call_creds_for_alts =
       grpc_google_compute_engine_credentials_create(options);
   // Check security level.
@@ -1862,7 +1862,7 @@ TEST_F(CredentialsTest, TestGoogleDefaultCredsWithAltsCallCredsSpecified) {
   grpc_call_credentials* call_creds_for_tls =
       grpc_google_compute_engine_credentials_create(nullptr);
   grpc_google_compute_engine_credentials_options options;
-  options->alts_hard_bound = true;
+  options.alts_hard_bound = true;
   grpc_call_credentials* call_creds_for_alts =
       grpc_google_compute_engine_credentials_create(options);
   set_gce_tenancy_checker_for_testing(test_gce_tenancy_checker);
