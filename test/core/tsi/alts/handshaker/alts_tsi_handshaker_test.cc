@@ -453,10 +453,10 @@ void OnClientNextSuccessIntegrityOnlyCb(tsi_result status, void* user_data,
 }
 
 void OnServerNextSuccess(tsi_result status, void* user_data,
-                             const unsigned char* bytes_to_send,
-                             size_t bytes_to_send_size,
-                             tsi_handshaker_result* result,
-                             bool is_integrity_only = false) {
+                         const unsigned char* bytes_to_send,
+                         size_t bytes_to_send_size,
+                         tsi_handshaker_result* result,
+                         bool is_integrity_only = false) {
   ASSERT_EQ(status, TSI_OK);
   ASSERT_EQ(user_data, nullptr);
   ASSERT_EQ(bytes_to_send_size, 0);
@@ -566,8 +566,8 @@ void OnServerNextSuccessIntegrityOnlyCb(tsi_result status, void* user_data,
                                         size_t bytes_to_send_size,
                                         tsi_handshaker_result* result) {
   return OnServerNextSuccess(status, user_data, bytes_to_send,
-                                 bytes_to_send_size, result,
-                                 /*is_integrity_only=*/true);
+                             bytes_to_send_size, result,
+                             /*is_integrity_only=*/true);
 }
 
 tsi_result MockClientStart(alts_handshaker_client* client) {
