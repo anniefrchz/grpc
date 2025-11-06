@@ -500,7 +500,7 @@ void InMemoryCertificateProvider::UpdateRoot(std::string root_certificates) {
 
 void UpdateIdentity(PemKeyCertPairList pem_key_cert_pairs) {
   MutexLock lock(&mu_);
-  pem_key_cert_pairs_.reset(std::move(pem_key_cert_pairs));
+  pem_key_cert_pairs.reset(std::move(pem_key_cert_pairs));
 }
 
 }  // namespace grpc_core
