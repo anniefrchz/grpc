@@ -44,17 +44,17 @@ absl::StatusOr<uint16_t> ToOpenSslSignatureAlgorithm(
       return SSL_SIGN_RSA_PKCS1_SHA384;
     case SignatureAlgorithm::kRsaPkcs1Sha512:
       return SSL_SIGN_RSA_PKCS1_SHA512;
-    case grpc_core::SignatureAlgorithm::kEcdsaSecp256r1Sha256:
+    case SignatureAlgorithm::kEcdsaSecp256r1Sha256:
       return SSL_SIGN_ECDSA_SECP256R1_SHA256;
-    case grpc_core::SignatureAlgorithm::kEcdsaSecp384r1Sha384:
+    case SignatureAlgorithm::kEcdsaSecp384r1Sha384:
       return SSL_SIGN_ECDSA_SECP384R1_SHA384;
-    case grpc_core::SignatureAlgorithm::kEcdsaSecp521r1Sha512:
+    case SignatureAlgorithm::kEcdsaSecp521r1Sha512:
       return SSL_SIGN_ECDSA_SECP521R1_SHA512;
-    case grpc_core::SignatureAlgorithm::kRsaPssRsaeSha256:
+    case SignatureAlgorithm::kRsaPssRsaeSha256:
       return SSL_SIGN_RSA_PSS_RSAE_SHA256;
-    case grpc_core::SignatureAlgorithm::kRsaPssRsaeSha384:
+    case SignatureAlgorithm::kRsaPssRsaeSha384:
       return SSL_SIGN_RSA_PSS_RSAE_SHA384;
-    case grpc_core::SignatureAlgorithm::kRsaPssRsaeSha512:
+    case SignatureAlgorithm::kRsaPssRsaeSha512:
       return SSL_SIGN_RSA_PSS_RSAE_SHA512;
   }
   return absl::InvalidArgumentError("Unknown signature algorithm.");
@@ -64,23 +64,23 @@ absl::StatusOr<SignatureAlgorithm> ToSignatureAlgorithmClass(
     uint16_t algorithm) {
   switch (algorithm) {
     case SSL_SIGN_RSA_PKCS1_SHA256:
-      return grpc_core::SignatureAlgorithm::kRsaPkcs1Sha256;
+      return SignatureAlgorithm::kRsaPkcs1Sha256;
     case SSL_SIGN_RSA_PKCS1_SHA384:
-      return grpc_core::SignatureAlgorithm::kRsaPkcs1Sha384;
+      return SignatureAlgorithm::kRsaPkcs1Sha384;
     case SSL_SIGN_RSA_PKCS1_SHA512:
-      return grpc_core::SignatureAlgorithm::kRsaPkcs1Sha512;
+      return SignatureAlgorithm::kRsaPkcs1Sha512;
     case SSL_SIGN_ECDSA_SECP256R1_SHA256:
-      return grpc_core::SignatureAlgorithm::kEcdsaSecp256r1Sha256;
+      return SignatureAlgorithm::kEcdsaSecp256r1Sha256;
     case SSL_SIGN_ECDSA_SECP384R1_SHA384:
-      return grpc_core::SignatureAlgorithm::kEcdsaSecp384r1Sha384;
+      return SignatureAlgorithm::kEcdsaSecp384r1Sha384;
     case SSL_SIGN_ECDSA_SECP521R1_SHA512:
-      return grpc_core::SignatureAlgorithm::kEcdsaSecp521r1Sha512;
+      return SignatureAlgorithm::kEcdsaSecp521r1Sha512;
     case SSL_SIGN_RSA_PSS_RSAE_SHA256:
-      return grpc_core::SignatureAlgorithm::kRsaPssRsaeSha256;
+      return SignatureAlgorithm::kRsaPssRsaeSha256;
     case SSL_SIGN_RSA_PSS_RSAE_SHA384:
-      return grpc_core::SignatureAlgorithm::kRsaPssRsaeSha384;
+      return SignatureAlgorithm::kRsaPssRsaeSha384;
     case SSL_SIGN_RSA_PSS_RSAE_SHA512:
-      return grpc_core::SignatureAlgorithm::kRsaPssRsaeSha512;
+      return SignatureAlgorithm::kRsaPssRsaeSha512;
   }
   return absl::InvalidArgumentError("Unknown signature algorithm.");
 }
