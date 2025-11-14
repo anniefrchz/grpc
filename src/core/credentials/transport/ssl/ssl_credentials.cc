@@ -145,7 +145,7 @@ void grpc_ssl_credentials::build_config(
   if (pem_key_cert_pair != nullptr) {
     GRPC_CHECK_NE(pem_key_cert_pair->private_key, nullptr);
     GRPC_CHECK_NE(pem_key_cert_pair->cert_chain, nullptr);
-    config_.pem_key_cert_pair =  new tsi_ssl_pem_key_cert_pair();
+    config_.pem_key_cert_pair = new tsi_ssl_pem_key_cert_pair();
     config_.pem_key_cert_pair->cert_chain =
         absl::string_view(pem_key_cert_pair->cert_chain);
     config_.pem_key_cert_pair->private_key =
@@ -298,8 +298,10 @@ tsi_ssl_pem_key_cert_pair* grpc_convert_grpc_to_tsi_cert_pairs(
   for (size_t i = 0; i < num_key_cert_pairs; i++) {
     GRPC_CHECK_NE(pem_key_cert_pairs[i].private_key, nullptr);
     GRPC_CHECK_NE(pem_key_cert_pairs[i].cert_chain, nullptr);
-    tsi_pairs[i].cert_chain = absl::string_view(pem_key_cert_pairs[i].cert_chain);
-    tsi_pairs[i].private_key = absl::string_view(pem_key_cert_pairs[i].private_key);
+    tsi_pairs[i].cert_chain =
+        absl::string_view(pem_key_cert_pairs[i].cert_chain);
+    tsi_pairs[i].private_key =
+        absl::string_view(pem_key_cert_pairs[i].private_key);
   }
   return tsi_pairs;
 }
