@@ -116,8 +116,7 @@ class TlsChannelSecurityConnector final
         : security_connector_(security_connector) {}
     void OnCertificatesChanged(
         std::shared_ptr<RootCertInfo> root_certs,
-        std::shared_ptr<const grpc_core::PemKeyCertPairList> key_cert_pairs)
-        override;
+        std::shared_ptr<const PemKeyCertPairList> key_cert_pairs) override;
     void OnError(grpc_error_handle root_cert_error,
                  grpc_error_handle identity_cert_error) override;
 
@@ -227,8 +226,7 @@ class TlsServerSecurityConnector final : public grpc_server_security_connector {
         : security_connector_(security_connector) {}
     void OnCertificatesChanged(
         std::shared_ptr<RootCertInfo> roots,
-        std::shared_ptr<const grpc_core::PemKeyCertPairList> key_cert_pairs)
-        override;
+        std::shared_ptr<const PemKeyCertPairList> key_cert_pairs) override;
 
     void OnError(grpc_error_handle root_cert_error,
                  grpc_error_handle identity_cert_error) override;

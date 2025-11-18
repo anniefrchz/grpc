@@ -46,10 +46,9 @@ class RootCertificatesWatcher final
       RefCountedPtr<grpc_tls_certificate_distributor> parent)
       : parent_(std::move(parent)) {}
 
-  void OnCertificatesChanged(
-      std::shared_ptr<RootCertInfo> roots,
-      std::shared_ptr<const grpc_core::PemKeyCertPairList>
-      /* key_cert_pairs */) override {
+  void OnCertificatesChanged(std::shared_ptr<RootCertInfo> roots,
+                             std::shared_ptr<const PemKeyCertPairList>
+                             /* key_cert_pairs */) override {
     if (roots != nullptr) {
       parent_->SetKeyMaterials("", roots, nullptr);
     }
@@ -81,8 +80,7 @@ class IdentityCertificatesWatcher final
 
   void OnCertificatesChanged(
       std::shared_ptr<RootCertInfo> /* root_certs */,
-      std::shared_ptr<const grpc_core::PemKeyCertPairList> key_cert_pairs)
-      override {
+      std::shared_ptr<const PemKeyCertPairList> key_cert_pairs) override {
     if (key_cert_pairs != nullptr) {
       parent_->SetKeyMaterials("", nullptr, std::move(key_cert_pairs));
     }
