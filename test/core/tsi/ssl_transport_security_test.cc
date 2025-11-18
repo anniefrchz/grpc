@@ -160,7 +160,8 @@ class SslTransportSecurityTest
       base_.test_unused_bytes = true;
       base_.vtable = &kVtable;
       // Create ssl_key_cert_lib.
-      key_cert_lib_ = static_cast<ssl_key_cert_lib*>(gpr_zalloc(sizeof(ssl_key_cert_lib)));
+      key_cert_lib_ =
+          static_cast<ssl_key_cert_lib*>(gpr_zalloc(sizeof(ssl_key_cert_lib)));
       key_cert_lib_->use_bad_server_cert = false;
       key_cert_lib_->use_bad_client_cert = false;
       key_cert_lib_->use_root_store = false;
