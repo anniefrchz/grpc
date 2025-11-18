@@ -145,7 +145,8 @@ _DATA_MEMBERS = [
             'MakeRefCounted<StaticDataCertificateProvider>("root_cert_2",'
             " PemKeyCertPairList())"
         ),
-    ),DataMember(
+    ),
+    DataMember(
         name="watch_root_cert",
         type="bool",
         default_initializer="false",
