@@ -138,7 +138,7 @@ class TestCertificatesWatcher
     identity_cert_error_ = identity_cert_error;
   }
 
-  const std::shared_ptr<const PemKeyCertPairList> key_cert_pairs() const {
+  std::shared_ptr<const PemKeyCertPairList> key_cert_pairs() const {
     return key_cert_pairs_;
   }
 
@@ -151,7 +151,7 @@ class TestCertificatesWatcher
   grpc_error_handle identity_cert_error() const { return identity_cert_error_; }
 
  private:
-  sstd::shared_ptr<const PemKeyCertPairList> key_cert_pairs_;
+  std::shared_ptr<const PemKeyCertPairList> key_cert_pairs_;
   std::shared_ptr<RootCertInfo> root_cert_info_;
   grpc_error_handle root_cert_error_;
   grpc_error_handle identity_cert_error_;
