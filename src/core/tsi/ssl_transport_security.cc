@@ -260,7 +260,8 @@ static int g_ssl_ex_verified_root_cert_index = -1;
 static const char kSslEnginePrefix[] = "engine:";
 #endif
 #if OPENSSL_VERSION_NUMBER >= 0x30500000
-static const int kSslEcCurveNames[] = {NID_X9_62_prime256v1, SSL_GROUP_X25519_MLKEM768};
+static const int kSslEcCurveNames[] = {NID_X9_62_prime256v1,
+                                       SSL_GROUP_X25519_MLKEM768};
 #elif OPENSSL_VERSION_NUMBER >= 0x30000000
 static const int kSslEcCurveNames[] = {NID_X9_62_prime256v1};
 #endif
