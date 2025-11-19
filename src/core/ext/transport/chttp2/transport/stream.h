@@ -19,12 +19,24 @@
 #ifndef GRPC_SRC_CORE_EXT_TRANSPORT_CHTTP2_TRANSPORT_STREAM_H
 #define GRPC_SRC_CORE_EXT_TRANSPORT_CHTTP2_TRANSPORT_STREAM_H
 
+#include <grpc/support/port_platform.h>
+
 #include <cstdint>
+#include <limits>
+#include <utility>
 
 #include "src/core/call/call_spine.h"
+#include "src/core/call/message.h"
+#include "src/core/call/metadata.h"
 #include "src/core/ext/transport/chttp2/transport/flow_control.h"
+#include "src/core/ext/transport/chttp2/transport/header_assembler.h"
+#include "src/core/ext/transport/chttp2/transport/hpack_encoder.h"
+#include "src/core/ext/transport/chttp2/transport/message_assembler.h"
 #include "src/core/ext/transport/chttp2/transport/stream_data_queue.h"
+#include "src/core/util/grpc_check.h"
+#include "src/core/util/ref_counted.h"
 #include "src/core/util/ref_counted_ptr.h"
+#include "absl/log/log.h"
 
 namespace grpc_core {
 namespace http2 {
@@ -54,8 +66,8 @@ struct Stream : public RefCounted<Stream> {
         stream_state(HttpStreamState::kIdle),
         stream_id(kInvalidStreamId),
         header_assembler(allow_true_binary_metadata_acked),
-        did_push_initial_metadata(false),
-        did_push_trailing_metadata(false),
+        did_receive_initial_metadata(false),
+        did_receive_trailing_metadata(false),
         data_queue(MakeRefCounted<StreamDataQueue<ClientMetadataHandle>>(
             /*is_client*/ true,
             /*queue_size*/ kStreamQueueSize, allow_true_binary_metadata_peer)),
@@ -123,11 +135,14 @@ struct Stream : public RefCounted<Stream> {
                      HPackCompressor& encoder) {
     HttpStreamState state = GetStreamState();
     // Reset stream MUST not be sent if the stream is idle or closed.
-    return data_queue->DequeueFrames(transport_tokens, max_frame_length,
-                                     encoder,
-                                     /*can_send_reset_stream=*/
-                                     !(state == HttpStreamState::kIdle ||
-                                       state == HttpStreamState::kClosed));
+    // TODO(tjagtap) : [PH2][P1][FlowControl] : Populate the correct stream flow
+    // control tokens.
+    return data_queue->DequeueFrames(
+        transport_tokens, max_frame_length,
+        /*stream_fc_tokens=*/std::numeric_limits<uint32_t>::max(), encoder,
+        /*can_send_reset_stream=*/
+        !(state == HttpStreamState::kIdle ||
+          state == HttpStreamState::kClosed));
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -232,8 +247,8 @@ struct Stream : public RefCounted<Stream> {
   // frame with end_stream or set the end_stream flag in the last data
   // frame being sent out. This is done as the stream state should not
   // transition to HalfClosedLocal till the end_stream frame is sent.
-  bool did_push_initial_metadata;
-  bool did_push_trailing_metadata;
+  bool did_receive_initial_metadata;
+  bool did_receive_trailing_metadata;
   RefCountedPtr<StreamDataQueue<ClientMetadataHandle>> data_queue;
   chttp2::StreamFlowControl flow_control;
 };

@@ -38,6 +38,7 @@
 #include "src/core/lib/channel/channel_args.h"
 #include "src/core/lib/event_engine/default_event_engine.h"
 #include "src/core/lib/promise/try_join.h"
+#include "src/core/lib/slice/slice_buffer.h"
 #include "src/core/util/grpc_check.h"
 #include "src/core/util/notification.h"
 #include "src/core/util/orphanable.h"
@@ -52,6 +53,7 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
+#include "absl/types/span.h"
 
 namespace grpc_core {
 namespace http2 {
@@ -156,6 +158,154 @@ TEST(Http2CommonTransportTest, TestReadChannelArgs) {
   EXPECT_EQ(settings2.allow_security_frame(), false);
 }
 
+TEST(Http2CommonTransportTest, MaybeGetSettingsAndSettingsAckFramesIdle) {
+  // Tests that in idle state, first call to
+  // MaybeGetSettingsAndSettingsAckFrames sends initial settings, and second
+  // call does nothing.
+  chttp2::TransportFlowControl transport_flow_control(
+      /*name=*/"TestFlowControl", /*enable_bdp_probe=*/false,
+      /*memory_owner=*/nullptr);
+  Http2SettingsManager settings_manager;
+  SliceBuffer output_buf;
+  // We add "hello" to output_buf to ensure that
+  // MaybeGetSettingsAndSettingsAckFrames appends to it and does not overwrite
+  // it, i.e. the original contents of output_buf are not erased.
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  EXPECT_TRUE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  ASSERT_THAT(output_buf.JoinIntoString(), ::testing::StartsWith("hello"));
+  EXPECT_GT(output_buf.Length(), 5);
+  output_buf.Clear();
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  EXPECT_FALSE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  EXPECT_EQ(output_buf.Length(), 5);
+  EXPECT_EQ(output_buf.JoinIntoString(), "hello");
+}
+
+TEST(Http2CommonTransportTest,
+     MaybeGetSettingsAndSettingsAckFramesMultipleAcks) {
+  // If multiple settings frames are applied then multiple ACKs should be sent.
+  chttp2::TransportFlowControl transport_flow_control(
+      /*name=*/"TestFlowControl", /*enable_bdp_probe=*/false,
+      /*memory_owner=*/nullptr);
+  Http2SettingsManager settings_manager;
+  SliceBuffer output_buf;
+  EXPECT_TRUE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  output_buf.Clear();
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  for (int i = 0; i < 5; ++i) {
+    EXPECT_EQ(settings_manager.ApplyIncomingSettings({}),
+              http2::Http2ErrorCode::kNoError);
+  }
+
+  EXPECT_FALSE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+
+  SliceBuffer expected_buf;
+  expected_buf.Append(Slice::FromCopiedString("hello"));
+  for (int i = 0; i < 5; ++i) {
+    Http2SettingsFrame settings;
+    settings.ack = true;
+    Http2Frame frame(settings);
+    Serialize(absl::Span<Http2Frame>(&frame, 1), expected_buf);
+  }
+  EXPECT_EQ(output_buf.Length(), expected_buf.Length());
+  EXPECT_EQ(output_buf.JoinIntoString(), expected_buf.JoinIntoString());
+}
+
+TEST(Http2CommonTransportTest,
+     MaybeGetSettingsAndSettingsAckFramesAfterAckAndChange) {
+  // Tests that after initial settings are sent and ACKed, no frame is sent. If
+  // settings are changed, a new SETTINGS frame with diff is sent.
+  chttp2::TransportFlowControl transport_flow_control(
+      /*name=*/"TestFlowControl", /*enable_bdp_probe=*/false,
+      /*memory_owner=*/nullptr);
+  Http2SettingsManager settings_manager;
+  const uint32_t kSetMaxFrameSize = 16385;
+  SliceBuffer output_buf;
+  // We add "hello" to output_buf to ensure that
+  // MaybeGetSettingsAndSettingsAckFrames appends to it and does not overwrite
+  // it, i.e. the original contents of output_buf are not erased.
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  // Initial settings
+  EXPECT_TRUE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  ASSERT_THAT(output_buf.JoinIntoString(), ::testing::StartsWith("hello"));
+  EXPECT_GT(output_buf.Length(), 5);
+  // Ack settings
+  EXPECT_TRUE(settings_manager.AckLastSend());
+  output_buf.Clear();
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  // No changes - no frames
+  EXPECT_FALSE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  EXPECT_EQ(output_buf.Length(), 5);
+  EXPECT_EQ(output_buf.JoinIntoString(), "hello");
+  output_buf.Clear();
+  // Change settings
+  settings_manager.mutable_local().SetMaxFrameSize(kSetMaxFrameSize);
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  EXPECT_TRUE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  // Check frame
+  Http2SettingsFrame expected_settings;
+  expected_settings.ack = false;
+  expected_settings.settings.push_back(
+      {Http2Settings::kMaxFrameSizeWireId, kSetMaxFrameSize});
+  Http2Frame expected_frame(expected_settings);
+  SliceBuffer expected_buf;
+  expected_buf.Append(Slice::FromCopiedString("hello"));
+  Serialize(absl::Span<Http2Frame>(&expected_frame, 1), expected_buf);
+  EXPECT_EQ(output_buf.Length(), expected_buf.Length());
+  EXPECT_EQ(output_buf.JoinIntoString(), expected_buf.JoinIntoString());
+
+  // We set SetMaxFrameSize to the same value as previous value.
+  // The Diff will be zero, in this case a new SETTINGS frame must not be sent.
+  settings_manager.mutable_local().SetMaxFrameSize(kSetMaxFrameSize);
+  output_buf.Clear();
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  EXPECT_FALSE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  EXPECT_EQ(output_buf.Length(), 5);
+  EXPECT_EQ(output_buf.JoinIntoString(), "hello");
+}
+
+TEST(Http2CommonTransportTest, MaybeGetSettingsAndSettingsAckFramesWithAck) {
+  // Tests that if we need to send initial settings and also ACK received
+  // settings, both frames are sent.
+  chttp2::TransportFlowControl transport_flow_control(
+      /*name=*/"TestFlowControl", /*enable_bdp_probe=*/false,
+      /*memory_owner=*/nullptr);
+  Http2SettingsManager settings_manager;
+  SliceBuffer output_buf;
+  // We add "hello" to output_buf to ensure that
+  // MaybeGetSettingsAndSettingsAckFrames appends to it and does not overwrite
+  // it, i.e. the original contents of output_buf are not erased.
+  output_buf.Append(Slice::FromCopiedString("hello"));
+  EXPECT_EQ(settings_manager.ApplyIncomingSettings({}),
+            http2::Http2ErrorCode::kNoError);
+  EXPECT_TRUE(MaybeGetSettingsAndSettingsAckFrames(
+      transport_flow_control, settings_manager, output_buf));
+  Http2SettingsFrame expected_settings;
+  expected_settings.ack = false;
+  settings_manager.local().Diff(
+      true, Http2Settings(), [&](uint16_t key, uint32_t value) {
+        expected_settings.settings.push_back({key, value});
+      });
+  Http2SettingsFrame expected_settings_ack;
+  expected_settings_ack.ack = true;
+  SliceBuffer expected_buf;
+  expected_buf.Append(Slice::FromCopiedString("hello"));
+  std::vector<Http2Frame> frames;
+  frames.emplace_back(expected_settings);
+  frames.emplace_back(expected_settings_ack);
+  Serialize(absl::MakeSpan(frames), expected_buf);
+  EXPECT_EQ(output_buf.Length(), expected_buf.Length());
+  EXPECT_EQ(output_buf.JoinIntoString(), expected_buf.JoinIntoString());
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Flow control helpers tests
 
@@ -192,14 +342,14 @@ TEST(Http2CommonTransportTest, ProcessIncomingDataFrameFlowControlNullStream) {
   frame_header.flags = 0;
   frame_header.stream_id = 1;
 
-  EXPECT_EQ(flow_control.announced_window(), chttp2::kDefaultWindow);
+  EXPECT_EQ(flow_control.test_only_announced_window(), chttp2::kDefaultWindow);
 
   // First DATA frame of size frame_payload_size
   ValueOrHttp2Status<chttp2::FlowControlAction> action1 =
       ProcessIncomingDataFrameFlowControl(frame_header, flow_control,
                                           /*stream=*/nullptr);
   EXPECT_TRUE(action1.IsOk());
-  EXPECT_EQ(flow_control.announced_window(),
+  EXPECT_EQ(flow_control.test_only_announced_window(),
             chttp2::kDefaultWindow - frame_payload_size);
 
   // 2nd DATA frame of size frame_payload_size
@@ -207,7 +357,7 @@ TEST(Http2CommonTransportTest, ProcessIncomingDataFrameFlowControlNullStream) {
       ProcessIncomingDataFrameFlowControl(frame_header, flow_control,
                                           /*stream=*/nullptr);
   EXPECT_TRUE(action2.IsOk());
-  EXPECT_EQ(flow_control.announced_window(),
+  EXPECT_EQ(flow_control.test_only_announced_window(),
             chttp2::kDefaultWindow - 2 * frame_payload_size);
 
   // 3rd DATA frame of size frame_payload_size
@@ -215,7 +365,7 @@ TEST(Http2CommonTransportTest, ProcessIncomingDataFrameFlowControlNullStream) {
       ProcessIncomingDataFrameFlowControl(frame_header, flow_control,
                                           /*stream=*/nullptr);
   EXPECT_TRUE(action3.IsOk());
-  EXPECT_EQ(flow_control.announced_window(),
+  EXPECT_EQ(flow_control.test_only_announced_window(),
             chttp2::kDefaultWindow - 3 * frame_payload_size);
 
   // 4th DATA frame of size frame_payload_size.
@@ -245,14 +395,14 @@ TEST(Http2CommonTransportTest, ProcessIncomingDataFrameFlowControlNullStream1) {
   frame_header.flags = 0;
   frame_header.stream_id = 1;
 
-  EXPECT_EQ(flow_control.announced_window(), chttp2::kDefaultWindow);
+  EXPECT_EQ(flow_control.test_only_announced_window(), chttp2::kDefaultWindow);
 
   // Receive first large DATA frame.
   ValueOrHttp2Status<chttp2::FlowControlAction> action1 =
       ProcessIncomingDataFrameFlowControl(frame_header, flow_control,
                                           /*stream=*/nullptr);
   EXPECT_TRUE(action1.IsOk());
-  EXPECT_EQ(flow_control.announced_window(),
+  EXPECT_EQ(flow_control.test_only_announced_window(),
             chttp2::kDefaultWindow - frame_payload_size);
 
   // Send the flow control update to peer
@@ -264,7 +414,7 @@ TEST(Http2CommonTransportTest, ProcessIncomingDataFrameFlowControlNullStream1) {
       ProcessIncomingDataFrameFlowControl(frame_header, flow_control,
                                           /*stream=*/nullptr);
   EXPECT_TRUE(action2.IsOk());
-  EXPECT_EQ(flow_control.announced_window(),
+  EXPECT_EQ(flow_control.test_only_announced_window(),
             (chttp2::kDefaultWindow + increment) - 2 * frame_payload_size);
 
   // For an empty DATA frame the flow control window must not change.
@@ -275,7 +425,7 @@ TEST(Http2CommonTransportTest, ProcessIncomingDataFrameFlowControlNullStream1) {
         ProcessIncomingDataFrameFlowControl(frame_header, flow_control,
                                             /*stream=*/nullptr);
     EXPECT_TRUE(action3.IsOk());
-    EXPECT_EQ(flow_control.announced_window(),
+    EXPECT_EQ(flow_control.test_only_announced_window(),
               (chttp2::kDefaultWindow + increment) - 2 * frame_payload_size);
   }
 }
@@ -290,17 +440,18 @@ TEST_F(TestsNeedingStreamObjects,
   frame_header.flags = 0;
   frame_header.stream_id = 1;
 
-  EXPECT_EQ(transport_flow_control_.announced_window(), chttp2::kDefaultWindow);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(), 0);
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
+            chttp2::kDefaultWindow);
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(), 0);
 
   // First DATA frame of size frame_payload_size
   ValueOrHttp2Status<chttp2::FlowControlAction> action1 =
       ProcessIncomingDataFrameFlowControl(frame_header, transport_flow_control_,
                                           stream);
   EXPECT_TRUE(action1.IsOk());
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             chttp2::kDefaultWindow - frame_payload_size);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             -static_cast<int64_t>(frame_payload_size));
 
   // 2nd DATA frame of size frame_payload_size
@@ -308,9 +459,9 @@ TEST_F(TestsNeedingStreamObjects,
       ProcessIncomingDataFrameFlowControl(frame_header, transport_flow_control_,
                                           stream);
   EXPECT_TRUE(action2.IsOk());
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             chttp2::kDefaultWindow - 2 * frame_payload_size);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             -2 * static_cast<int64_t>(frame_payload_size));
 
   // 3rd DATA frame of size frame_payload_size
@@ -318,9 +469,9 @@ TEST_F(TestsNeedingStreamObjects,
       ProcessIncomingDataFrameFlowControl(frame_header, transport_flow_control_,
                                           stream);
   EXPECT_TRUE(action3.IsOk());
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             chttp2::kDefaultWindow - 3 * frame_payload_size);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             -3 * static_cast<int64_t>(frame_payload_size));
 
   // 4th DATA frame of size frame_payload_size.
@@ -349,24 +500,25 @@ TEST_F(TestsNeedingStreamObjects,
   frame_header.flags = 0;
   frame_header.stream_id = 1;
 
-  EXPECT_EQ(transport_flow_control_.announced_window(), chttp2::kDefaultWindow);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(), 0);
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
+            chttp2::kDefaultWindow);
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(), 0);
 
   // Receive first large DATA frame.
   ValueOrHttp2Status<chttp2::FlowControlAction> action1 =
       ProcessIncomingDataFrameFlowControl(frame_header, transport_flow_control_,
                                           stream);
   EXPECT_TRUE(action1.IsOk());
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             chttp2::kDefaultWindow - frame_payload_size);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             -static_cast<int64_t>(frame_payload_size));
 
   // Send the flow control update to peer for transport
   uint32_t increment =
       transport_flow_control_.MaybeSendUpdate(/*writing_anyway=*/true);
   EXPECT_GT(increment, 0);
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             chttp2::kDefaultWindow - frame_payload_size + increment);
 
   // Receive 2nd large DATA frame.
@@ -397,9 +549,9 @@ TEST_F(TestsNeedingStreamObjects,
   int64_t expected_announced_window = chttp2::kDefaultWindow;
   int64_t expected_announced_window_delta = 0;
 
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             expected_announced_window);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             expected_announced_window_delta);
 
   // Receive first large DATA frame.
@@ -409,9 +561,9 @@ TEST_F(TestsNeedingStreamObjects,
   expected_announced_window -= frame_payload_size;
   expected_announced_window_delta -= frame_payload_size;
   EXPECT_TRUE(action1.IsOk());
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             expected_announced_window);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             expected_announced_window_delta);
 
   chttp2::StreamFlowControl::IncomingUpdateContext stream_flow_control_context(
@@ -429,9 +581,9 @@ TEST_F(TestsNeedingStreamObjects,
   EXPECT_GT(stream_increment, 0);
   expected_announced_window += transport_increment;
   expected_announced_window_delta += stream_increment;
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             expected_announced_window);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             expected_announced_window_delta);
 
   // Receive 2nd large DATA frame.
@@ -441,9 +593,9 @@ TEST_F(TestsNeedingStreamObjects,
   EXPECT_TRUE(action2.IsOk());
   expected_announced_window -= frame_payload_size;
   expected_announced_window_delta -= frame_payload_size;
-  EXPECT_EQ(transport_flow_control_.announced_window(),
+  EXPECT_EQ(transport_flow_control_.test_only_announced_window(),
             expected_announced_window);
-  EXPECT_EQ(stream->flow_control.announced_window_delta(),
+  EXPECT_EQ(stream->flow_control.test_only_announced_window_delta(),
             expected_announced_window_delta);
 }
 

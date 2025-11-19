@@ -19,6 +19,8 @@
 #ifndef GRPC_SRC_CORE_EXT_TRANSPORT_CHTTP2_TRANSPORT_HTTP2_CLIENT_TRANSPORT_H
 #define GRPC_SRC_CORE_EXT_TRANSPORT_CHTTP2_TRANSPORT_HTTP2_CLIENT_TRANSPORT_H
 
+#include <grpc/event_engine/event_engine.h>
+#include <grpc/grpc.h>
 #include <grpc/support/port_platform.h>
 
 #include <cstddef>
@@ -42,6 +44,7 @@
 #include "src/core/ext/transport/chttp2/transport/http2_status.h"
 #include "src/core/ext/transport/chttp2/transport/http2_transport.h"
 #include "src/core/ext/transport/chttp2/transport/http2_ztrace_collector.h"
+#include "src/core/ext/transport/chttp2/transport/incoming_metadata_tracker.h"
 #include "src/core/ext/transport/chttp2/transport/keepalive.h"
 #include "src/core/ext/transport/chttp2/transport/ping_promise.h"
 #include "src/core/ext/transport/chttp2/transport/stream.h"
@@ -50,12 +53,19 @@
 #include "src/core/lib/channel/channel_args.h"
 #include "src/core/lib/iomgr/closure.h"
 #include "src/core/lib/iomgr/iomgr_fwd.h"
+#include "src/core/lib/promise/activity.h"
+#include "src/core/lib/promise/context.h"
 #include "src/core/lib/promise/if.h"
+#include "src/core/lib/promise/latch.h"
 #include "src/core/lib/promise/map.h"
 #include "src/core/lib/promise/party.h"
+#include "src/core/lib/promise/poll.h"
 #include "src/core/lib/promise/promise.h"
+#include "src/core/lib/promise/race.h"
 #include "src/core/lib/promise/try_seq.h"
 #include "src/core/lib/resource_quota/memory_quota.h"
+#include "src/core/lib/slice/slice.h"
+#include "src/core/lib/slice/slice_buffer.h"
 #include "src/core/lib/transport/connectivity_state.h"
 #include "src/core/lib/transport/promise_endpoint.h"
 #include "src/core/lib/transport/transport.h"
@@ -66,6 +76,8 @@
 #include "src/core/util/ref_counted_ptr.h"
 #include "src/core/util/sync.h"
 #include "src/core/util/time.h"
+#include "absl/base/thread_annotations.h"
+#include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/functional/any_invocable.h"
 #include "absl/log/log.h"
@@ -121,7 +133,7 @@ class Http2ClientTransport final : public ClientTransport,
       PromiseEndpoint endpoint, GRPC_UNUSED const ChannelArgs& channel_args,
       std::shared_ptr<grpc_event_engine::experimental::EventEngine>
           event_engine,
-      grpc_closure* on_receive_settings);
+      absl::AnyInvocable<void(absl::StatusOr<uint32_t>)> on_receive_settings);
 
   Http2ClientTransport(const Http2ClientTransport&) = delete;
   Http2ClientTransport& operator=(const Http2ClientTransport&) = delete;
@@ -148,6 +160,9 @@ class Http2ClientTransport final : public ClientTransport,
       OrphanablePtr<ConnectivityStateWatcherInterface> watcher);
   void StopConnectivityWatch(ConnectivityStateWatcherInterface* watcher);
 
+  void StartWatch(RefCountedPtr<StateWatcher> watcher) override;
+  void StopWatch(RefCountedPtr<StateWatcher> watcher) override;
+
   void Orphan() override;
 
   RefCountedPtr<channelz::SocketNode> GetSocketNode() const override {
@@ -162,6 +177,7 @@ class Http2ClientTransport final : public ClientTransport,
   }
 
   void AddData(channelz::DataSink sink) override;
+  void SpawnAddChannelzData(channelz::DataSink sink);
 
   auto TestOnlyTriggerWriteCycle() {
     return Immediate(writable_stream_list_.ForceReadyForWrite());
@@ -241,16 +257,30 @@ class Http2ClientTransport final : public ClientTransport,
   auto CallOutboundLoop(CallHandler call_handler, RefCountedPtr<Stream> stream,
                         ClientMetadataHandle metadata);
 
+  // TODO(akshitpatel) : [PH2][P3] : Make this a synchronous function.
   // Force triggers a transport write cycle
   auto TriggerWriteCycle() {
     return Immediate(writable_stream_list_.ForceReadyForWrite());
   }
 
+  auto FlowControlPeriodicUpdateLoop();
+  // TODO(tjagtap) [PH2][P2][BDP] Remove this when the BDP code is done.
+  void AddPeriodicUpdatePromiseWaker() {
+    periodic_updates_waker_ = GetContext<Activity>()->MakeNonOwningWaker();
+  }
+  // TODO(tjagtap) [PH2][P2][BDP] Remove this when the BDP code is done.
+  void WakeupPeriodicUpdatePromise() { periodic_updates_waker_.Wakeup(); }
+
   // Processes the flow control action and take necessary steps.
   void ActOnFlowControlAction(const chttp2::FlowControlAction& action,
                               RefCountedPtr<Stream> stream);
 
+  void NotifyStateWatcherOnDisconnectLocked(
+      absl::Status status, StateWatcher::DisconnectInfo disconnect_info)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(&transport_mutex_);
+
   RefCountedPtr<Party> general_party_;
+  std::shared_ptr<grpc_event_engine::experimental::EventEngine> event_engine_;
 
   PromiseEndpoint endpoint_;
   Http2SettingsManager settings_;
@@ -311,7 +341,15 @@ class Http2ClientTransport final : public ClientTransport,
 
     // RFC9113 : Streams initiated by a client MUST use odd-numbered stream
     // identifiers.
-    return std::exchange(next_stream_id_, next_stream_id_ + 2);
+    uint32_t new_stream_id =
+        std::exchange(next_stream_id_, next_stream_id_ + 2);
+    if (GPR_UNLIKELY(next_stream_id_ > GetMaxAllowedStreamId())) {
+      ReportDisconnection(
+          absl::ResourceExhaustedError("Transport Stream IDs exhausted"),
+          {},  // TODO(tjagtap) : [PH2][P2] : Report better disconnect info.
+          "no_more_stream_ids");
+    }
+    return new_stream_id;
   }
 
   // Returns the next stream id without incrementing it. MUST be called from the
@@ -355,6 +393,8 @@ class Http2ClientTransport final : public ClientTransport,
 
   ConnectivityStateTracker state_tracker_ ABSL_GUARDED_BY(transport_mutex_){
       "http2_client", GRPC_CHANNEL_READY};
+
+  RefCountedPtr<StateWatcher> watcher_ ABSL_GUARDED_BY(transport_mutex_);
 
   // Runs on the call party.
   std::optional<RefCountedPtr<Stream>> MakeStream(CallHandler call_handler);
@@ -464,11 +504,9 @@ class Http2ClientTransport final : public ClientTransport,
   }
 
   bool should_reset_ping_clock_;
-  bool incoming_header_in_progress_;
-  bool incoming_header_end_stream_;
   bool is_first_write_;
-  uint32_t incoming_header_stream_id_;
-  grpc_closure* on_receive_settings_;
+  IncomingMetadataTracker incoming_headers_;
+  absl::AnyInvocable<void(absl::StatusOr<uint32_t>)> on_receive_settings_;
 
   uint32_t max_header_list_size_soft_limit_;
 
@@ -528,10 +566,20 @@ class Http2ClientTransport final : public ClientTransport,
     std::optional<Http2Frame> settings_frame = settings_.MaybeSendUpdate();
     if (settings_frame.has_value()) {
       Serialize(absl::Span<Http2Frame>(&settings_frame.value(), 1), output_buf);
+      flow_control_.FlushedSettings();
     }
   }
 
   void MaybeGetWindowUpdateFrames(SliceBuffer& output_buf);
+
+  void ReportDisconnection(const absl::Status& status,
+                           StateWatcher::DisconnectInfo disconnect_info,
+                           const char* reason);
+
+  void ReportDisconnectionLocked(const absl::Status& status,
+                                 StateWatcher::DisconnectInfo disconnect_info,
+                                 const char* reason)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(&transport_mutex_);
 
   // Ping Helper functions
   Duration NextAllowedPingInterval() {
@@ -581,9 +629,7 @@ class Http2ClientTransport final : public ClientTransport,
     }
 
     Promise<absl::Status> PingTimeout() override {
-      // TODO(akshitpatel) : [PH2][P2] : Trigger goaway here.
-      // Returns a promise that resolves once goaway is sent.
-      LOG(INFO) << "Ping timeout at time: " << Timestamp::Now();
+      GRPC_HTTP2_CLIENT_DLOG << "Ping timeout at time: " << Timestamp::Now();
 
       // TODO(akshitpatel) : [PH2][P2] : The error code here has been chosen
       // based on CHTTP2's usage of GRPC_STATUS_UNAVAILABLE (which corresponds
@@ -622,8 +668,7 @@ class Http2ClientTransport final : public ClientTransport,
       });
     }
     Promise<absl::Status> OnKeepAliveTimeout() override {
-      // TODO(akshitpatel) : [PH2][P2] : Trigger goaway here.
-      LOG(INFO) << "Keepalive timeout triggered";
+      GRPC_HTTP2_CLIENT_DLOG << "Keepalive timeout triggered";
 
       // TODO(akshitpatel) : [PH2][P2] : The error code here has been chosen
       // based on CHTTP2's usage of GRPC_STATUS_UNAVAILABLE (which corresponds
@@ -720,6 +765,19 @@ class Http2ClientTransport final : public ClientTransport,
   chttp2::TransportFlowControl flow_control_;
   std::shared_ptr<PromiseHttp2ZTraceCollector> ztrace_collector_;
   absl::flat_hash_set<uint32_t> window_update_list_;
+
+  // TODO(tjagtap) [PH2][P2][BDP] Remove this when the BDP code is done.
+  Waker periodic_updates_waker_;
+
+  // TODO(tjagtap) [PH2][P2][Settings] Set this to true when we receive settings
+  // that appear "Urgent". Example - initial window size 0 is urgent because it
+  // indicates extreme memory pressure on the server.
+  bool should_stall_read_loop_;
+  Waker read_loop_waker_;
+  Http2Status ParseAndDiscardHeaders(SliceBuffer&& buffer, bool is_end_headers,
+                                     RefCountedPtr<Stream> stream,
+                                     Http2Status&& original_status,
+                                     DebugLocation whence = {});
 };
 
 // Since the corresponding class in CHTTP2 is about 3.9KB, our goal is to

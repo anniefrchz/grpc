@@ -116,6 +116,9 @@ const char* const additional_constraints_monitoring_experiment = "{}";
 const char* const description_multiping =
     "Allow more than one ping to be in flight at a time by default.";
 const char* const additional_constraints_multiping = "{}";
+const char* const description_otel_export_telemetry_domains =
+    "Export telemetry domains in OpenTelemetry metrics.";
+const char* const additional_constraints_otel_export_telemetry_domains = "{}";
 const char* const description_pick_first_ignore_empty_updates =
     "Ignore empty resolutions in pick_first";
 const char* const additional_constraints_pick_first_ignore_empty_updates = "{}";
@@ -179,6 +182,9 @@ const uint8_t required_experiments_secure_endpoint_offload_large_writes[] = {
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineClient),
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineListener),
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineSecureEndpoint)};
+const char* const description_skip_clear_peer_on_cancellation =
+    "If set, skips clearing of peer string on call cancellation.";
+const char* const additional_constraints_skip_clear_peer_on_cancellation = "{}";
 const char* const description_sleep_promise_exec_ctx_removal =
     "If set, polling the sleep promise does not rely on the ExecCtx.";
 const char* const additional_constraints_sleep_promise_exec_ctx_removal = "{}";
@@ -202,6 +208,9 @@ const char* const additional_constraints_tcp_rcv_lowat = "{}";
 const char* const description_track_writes_in_resource_quota =
     "Track the Write memory in Resource Quota.";
 const char* const additional_constraints_track_writes_in_resource_quota = "{}";
+const char* const description_transport_state_watcher =
+    "New state watcher API between transport and subchannel.";
+const char* const additional_constraints_transport_state_watcher = "{}";
 const char* const description_tsi_frame_protector_without_locks =
     "Do not hold locks while using the tsi_frame_protector.";
 const char* const additional_constraints_tsi_frame_protector_without_locks =
@@ -285,6 +294,9 @@ const ExperimentMetadata g_experiment_metadata[] = {
      additional_constraints_monitoring_experiment, nullptr, 0, true, true},
     {"multiping", description_multiping, additional_constraints_multiping,
      nullptr, 0, false, true},
+    {"otel_export_telemetry_domains", description_otel_export_telemetry_domains,
+     additional_constraints_otel_export_telemetry_domains, nullptr, 0, false,
+     true},
     {"pick_first_ignore_empty_updates",
      description_pick_first_ignore_empty_updates,
      additional_constraints_pick_first_ignore_empty_updates, nullptr, 0, false,
@@ -329,6 +341,10 @@ const ExperimentMetadata g_experiment_metadata[] = {
      description_secure_endpoint_offload_large_writes,
      additional_constraints_secure_endpoint_offload_large_writes,
      required_experiments_secure_endpoint_offload_large_writes, 3, false, true},
+    {"skip_clear_peer_on_cancellation",
+     description_skip_clear_peer_on_cancellation,
+     additional_constraints_skip_clear_peer_on_cancellation, nullptr, 0, false,
+     true},
     {"sleep_promise_exec_ctx_removal",
      description_sleep_promise_exec_ctx_removal,
      additional_constraints_sleep_promise_exec_ctx_removal, nullptr, 0, false,
@@ -348,6 +364,8 @@ const ExperimentMetadata g_experiment_metadata[] = {
      description_track_writes_in_resource_quota,
      additional_constraints_track_writes_in_resource_quota, nullptr, 0, false,
      true},
+    {"transport_state_watcher", description_transport_state_watcher,
+     additional_constraints_transport_state_watcher, nullptr, 0, false, true},
     {"tsi_frame_protector_without_locks",
      description_tsi_frame_protector_without_locks,
      additional_constraints_tsi_frame_protector_without_locks, nullptr, 0,
@@ -455,6 +473,9 @@ const char* const additional_constraints_monitoring_experiment = "{}";
 const char* const description_multiping =
     "Allow more than one ping to be in flight at a time by default.";
 const char* const additional_constraints_multiping = "{}";
+const char* const description_otel_export_telemetry_domains =
+    "Export telemetry domains in OpenTelemetry metrics.";
+const char* const additional_constraints_otel_export_telemetry_domains = "{}";
 const char* const description_pick_first_ignore_empty_updates =
     "Ignore empty resolutions in pick_first";
 const char* const additional_constraints_pick_first_ignore_empty_updates = "{}";
@@ -518,6 +539,9 @@ const uint8_t required_experiments_secure_endpoint_offload_large_writes[] = {
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineClient),
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineListener),
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineSecureEndpoint)};
+const char* const description_skip_clear_peer_on_cancellation =
+    "If set, skips clearing of peer string on call cancellation.";
+const char* const additional_constraints_skip_clear_peer_on_cancellation = "{}";
 const char* const description_sleep_promise_exec_ctx_removal =
     "If set, polling the sleep promise does not rely on the ExecCtx.";
 const char* const additional_constraints_sleep_promise_exec_ctx_removal = "{}";
@@ -541,6 +565,9 @@ const char* const additional_constraints_tcp_rcv_lowat = "{}";
 const char* const description_track_writes_in_resource_quota =
     "Track the Write memory in Resource Quota.";
 const char* const additional_constraints_track_writes_in_resource_quota = "{}";
+const char* const description_transport_state_watcher =
+    "New state watcher API between transport and subchannel.";
+const char* const additional_constraints_transport_state_watcher = "{}";
 const char* const description_tsi_frame_protector_without_locks =
     "Do not hold locks while using the tsi_frame_protector.";
 const char* const additional_constraints_tsi_frame_protector_without_locks =
@@ -624,6 +651,9 @@ const ExperimentMetadata g_experiment_metadata[] = {
      additional_constraints_monitoring_experiment, nullptr, 0, true, true},
     {"multiping", description_multiping, additional_constraints_multiping,
      nullptr, 0, false, true},
+    {"otel_export_telemetry_domains", description_otel_export_telemetry_domains,
+     additional_constraints_otel_export_telemetry_domains, nullptr, 0, false,
+     true},
     {"pick_first_ignore_empty_updates",
      description_pick_first_ignore_empty_updates,
      additional_constraints_pick_first_ignore_empty_updates, nullptr, 0, false,
@@ -668,6 +698,10 @@ const ExperimentMetadata g_experiment_metadata[] = {
      description_secure_endpoint_offload_large_writes,
      additional_constraints_secure_endpoint_offload_large_writes,
      required_experiments_secure_endpoint_offload_large_writes, 3, false, true},
+    {"skip_clear_peer_on_cancellation",
+     description_skip_clear_peer_on_cancellation,
+     additional_constraints_skip_clear_peer_on_cancellation, nullptr, 0, false,
+     true},
     {"sleep_promise_exec_ctx_removal",
      description_sleep_promise_exec_ctx_removal,
      additional_constraints_sleep_promise_exec_ctx_removal, nullptr, 0, false,
@@ -687,6 +721,8 @@ const ExperimentMetadata g_experiment_metadata[] = {
      description_track_writes_in_resource_quota,
      additional_constraints_track_writes_in_resource_quota, nullptr, 0, false,
      true},
+    {"transport_state_watcher", description_transport_state_watcher,
+     additional_constraints_transport_state_watcher, nullptr, 0, false, true},
     {"tsi_frame_protector_without_locks",
      description_tsi_frame_protector_without_locks,
      additional_constraints_tsi_frame_protector_without_locks, nullptr, 0,
@@ -794,6 +830,9 @@ const char* const additional_constraints_monitoring_experiment = "{}";
 const char* const description_multiping =
     "Allow more than one ping to be in flight at a time by default.";
 const char* const additional_constraints_multiping = "{}";
+const char* const description_otel_export_telemetry_domains =
+    "Export telemetry domains in OpenTelemetry metrics.";
+const char* const additional_constraints_otel_export_telemetry_domains = "{}";
 const char* const description_pick_first_ignore_empty_updates =
     "Ignore empty resolutions in pick_first";
 const char* const additional_constraints_pick_first_ignore_empty_updates = "{}";
@@ -857,6 +896,9 @@ const uint8_t required_experiments_secure_endpoint_offload_large_writes[] = {
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineClient),
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineListener),
     static_cast<uint8_t>(grpc_core::kExperimentIdEventEngineSecureEndpoint)};
+const char* const description_skip_clear_peer_on_cancellation =
+    "If set, skips clearing of peer string on call cancellation.";
+const char* const additional_constraints_skip_clear_peer_on_cancellation = "{}";
 const char* const description_sleep_promise_exec_ctx_removal =
     "If set, polling the sleep promise does not rely on the ExecCtx.";
 const char* const additional_constraints_sleep_promise_exec_ctx_removal = "{}";
@@ -880,6 +922,9 @@ const char* const additional_constraints_tcp_rcv_lowat = "{}";
 const char* const description_track_writes_in_resource_quota =
     "Track the Write memory in Resource Quota.";
 const char* const additional_constraints_track_writes_in_resource_quota = "{}";
+const char* const description_transport_state_watcher =
+    "New state watcher API between transport and subchannel.";
+const char* const additional_constraints_transport_state_watcher = "{}";
 const char* const description_tsi_frame_protector_without_locks =
     "Do not hold locks while using the tsi_frame_protector.";
 const char* const additional_constraints_tsi_frame_protector_without_locks =
@@ -963,6 +1008,9 @@ const ExperimentMetadata g_experiment_metadata[] = {
      additional_constraints_monitoring_experiment, nullptr, 0, true, true},
     {"multiping", description_multiping, additional_constraints_multiping,
      nullptr, 0, false, true},
+    {"otel_export_telemetry_domains", description_otel_export_telemetry_domains,
+     additional_constraints_otel_export_telemetry_domains, nullptr, 0, false,
+     true},
     {"pick_first_ignore_empty_updates",
      description_pick_first_ignore_empty_updates,
      additional_constraints_pick_first_ignore_empty_updates, nullptr, 0, false,
@@ -1007,6 +1055,10 @@ const ExperimentMetadata g_experiment_metadata[] = {
      description_secure_endpoint_offload_large_writes,
      additional_constraints_secure_endpoint_offload_large_writes,
      required_experiments_secure_endpoint_offload_large_writes, 3, false, true},
+    {"skip_clear_peer_on_cancellation",
+     description_skip_clear_peer_on_cancellation,
+     additional_constraints_skip_clear_peer_on_cancellation, nullptr, 0, false,
+     true},
     {"sleep_promise_exec_ctx_removal",
      description_sleep_promise_exec_ctx_removal,
      additional_constraints_sleep_promise_exec_ctx_removal, nullptr, 0, false,
@@ -1026,6 +1078,8 @@ const ExperimentMetadata g_experiment_metadata[] = {
      description_track_writes_in_resource_quota,
      additional_constraints_track_writes_in_resource_quota, nullptr, 0, false,
      true},
+    {"transport_state_watcher", description_transport_state_watcher,
+     additional_constraints_transport_state_watcher, nullptr, 0, false, true},
     {"tsi_frame_protector_without_locks",
      description_tsi_frame_protector_without_locks,
      additional_constraints_tsi_frame_protector_without_locks, nullptr, 0,
