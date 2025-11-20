@@ -554,7 +554,7 @@ void InMemoryCertificateProvider::UpdateRoot(std::string root_certificates) {
 void InMemoryCertificateProvider::UpdateIdentity(
     const PemKeyCertPairList& pem_key_cert_pairs) {
   MutexLock lock_pem(&pem_cert_pairs_mu_);
-  pem_key_cert_pairs_ = std::move(pem_key_cert_pairs);
+  pem_key_cert_pairs_ = pem_key_cert_pairs;
 }
 
 UniqueTypeName InMemoryCertificateProvider::type() const {

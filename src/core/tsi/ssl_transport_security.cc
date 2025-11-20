@@ -2031,7 +2031,7 @@ static tsi_result ssl_handshaker_next(
       static_cast<grpc_core::TlsPrivateKeyOffloadContext*>(SSL_get_ex_data(
           impl->ssl, grpc_core::GetPrivateKeyOffloadObjectIndex()));
   if (offload_context != nullptr) {
-    offload_context->notify_cb = std::move(cb);
+    offload_context->notify_cb = cb;
     offload_context->notify_user_data = user_data;
   }
 
@@ -2096,7 +2096,7 @@ static tsi_result ssl_handshaker_next(
                                           handshaker_result, error);
     if (status == TSI_OK) {
       if (offload_context != nullptr) {
-        offload_context->handshaker_result = std::move(handshaker_result);
+        offload_context->handshaker_result = handshaker_result;
       }
       // Indicates that the handshake has completed and that a
       // handshaker_result has been created.
