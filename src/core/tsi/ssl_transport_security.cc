@@ -966,8 +966,9 @@ static tsi_result populate_ssl_context(
           if (key_sign != nullptr) {
             SSL_CTX_set_private_key_method(
                 context, &grpc_core::TlsOffloadPrivateKeyMethod);
-            SSL_CTX_set_ex_data(
-                context, g_ssl_ctx_ex_private_key_function_index, key_sign.get());
+            SSL_CTX_set_ex_data(context,
+                                g_ssl_ctx_ex_private_key_function_index,
+                                key_sign.get());
           }
 #endif  // OPENSSL_IS_BORINGSSL
           return TSI_OK;

@@ -152,27 +152,33 @@ bool GetBoringSslAlgorithm(
       *md = EVP_sha512();
       *padding = RSA_PKCS1_PADDING;
       return true;
-    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::kEcdsaSecp256r1Sha256:
+    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::
+        kEcdsaSecp256r1Sha256:
       *md = EVP_sha256();
       *padding = 0;
       return true;
-    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::kEcdsaSecp384r1Sha384:
+    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::
+        kEcdsaSecp384r1Sha384:
       *md = EVP_sha384();
       *padding = 0;
       return true;
-    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::kEcdsaSecp521r1Sha512:
+    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::
+        kEcdsaSecp521r1Sha512:
       *md = EVP_sha512();
       *padding = 0;
       return true;
-    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha256:
+    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::
+        kRsaPssRsaeSha256:
       *md = EVP_sha256();
       *padding = RSA_PKCS1_PSS_PADDING;
       return true;
-    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha384:
+    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::
+        kRsaPssRsaeSha384:
       *md = EVP_sha384();
       *padding = RSA_PKCS1_PSS_PADDING;
       return true;
-    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha512:
+    case grpc_core::CustomPrivateKeySigner::SignatureAlgorithm::
+        kRsaPssRsaeSha512:
       *md = EVP_sha512();
       *padding = RSA_PKCS1_PSS_PADDING;
       return true;
@@ -190,7 +196,7 @@ class TestCustomPrivateKeySigner final
   void Sign(absl::string_view data_to_sign,
             SignatureAlgorithm signature_algorithm,
             OnSignComplete on_sign_complete) override {
-              LOG(ERROR) << "anasalazar";
+    LOG(ERROR) << "anasalazar";
     const EVP_MD* md = nullptr;
     int padding = 0;
     if (!GetBoringSslAlgorithm(signature_algorithm, &md, &padding)) {
@@ -237,7 +243,7 @@ class TestCustomPrivateKeySigner final
     LOG(ERROR) << "anasalazar";
   }
 
-  ~TestCustomPrivateKeySigner() {}
+  ~TestCustomPrivateKeySigner() override {}
 
  private:
   bssl::UniquePtr<EVP_PKEY> pkey_;
