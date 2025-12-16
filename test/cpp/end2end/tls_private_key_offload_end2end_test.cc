@@ -250,7 +250,7 @@ class TestCustomPrivateKeySigner final
     }).detach();
   }
 
-  ~TestCustomPrivateKeySigner() {}
+  ~TestCustomPrivateKeySigner() override {}
 
  private:
   bssl::UniquePtr<EVP_PKEY> pkey_;
