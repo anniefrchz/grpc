@@ -226,7 +226,7 @@ class TestPrivateKeySigner final : public grpc::experimental::PrivateKeySigner {
     return false;
   }
 
-  ~TestPrivateKeySigner() {}
+  ~TestPrivateKeySigner() override {}
 
  private:
   bssl::UniquePtr<EVP_PKEY> pkey_;
