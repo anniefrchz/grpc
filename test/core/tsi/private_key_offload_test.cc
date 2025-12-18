@@ -52,25 +52,25 @@ bssl::UniquePtr<EVP_PKEY> LoadPrivateKeyFromString(
 }
 
 uint16_t GetBoringSslAlgorithm(
-    grpc_core::PrivateKeySigner::SignatureAlgorithm signature_algorithm) {
+    PrivateKeySigner::SignatureAlgorithm signature_algorithm) {
   switch (signature_algorithm) {
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kRsaPkcs1Sha256:
+    case PrivateKeySigner::SignatureAlgorithm::kRsaPkcs1Sha256:
       return SSL_SIGN_RSA_PKCS1_SHA256;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kRsaPkcs1Sha384:
+    case PrivateKeySigner::SignatureAlgorithm::kRsaPkcs1Sha384:
       return SSL_SIGN_RSA_PKCS1_SHA384;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kRsaPkcs1Sha512:
+    case PrivateKeySigner::SignatureAlgorithm::kRsaPkcs1Sha512:
       return SSL_SIGN_RSA_PKCS1_SHA512;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kEcdsaSecp256r1Sha256:
+    case PrivateKeySigner::SignatureAlgorithm::kEcdsaSecp256r1Sha256:
       return SSL_SIGN_ECDSA_SECP256R1_SHA256;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kEcdsaSecp384r1Sha384:
+    case PrivateKeySigner::SignatureAlgorithm::kEcdsaSecp384r1Sha384:
       return SSL_SIGN_ECDSA_SECP384R1_SHA384;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kEcdsaSecp521r1Sha512:
+    case PrivateKeySigner::SignatureAlgorithm::kEcdsaSecp521r1Sha512:
       return SSL_SIGN_ECDSA_SECP521R1_SHA512;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha256:
+    case PrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha256:
       return SSL_SIGN_RSA_PSS_RSAE_SHA256;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha384:
+    case PrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha384:
       return SSL_SIGN_RSA_PSS_RSAE_SHA384;
-    case grpc_core::PrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha512:
+    case PrivateKeySigner::SignatureAlgorithm::kRsaPssRsaeSha512:
       return SSL_SIGN_RSA_PSS_RSAE_SHA512;
   }
 }
