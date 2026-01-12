@@ -192,7 +192,8 @@ FileWatcherCertificateProvider::FileWatcherCertificateProvider(
     identity_info.identity_being_watched = identity_being_watched;
     if (!root_info.root_being_watched) {
       root_watcher_info_.erase(cert_name);
-    } if (!identity_info.identity_being_watched) {
+    }
+    if (!identity_info.identity_being_watched) {
       identity_watcher_info_.erase(cert_name);
     }
     ExecCtx exec_ctx;
