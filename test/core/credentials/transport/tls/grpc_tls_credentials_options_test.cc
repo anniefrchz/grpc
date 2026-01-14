@@ -118,7 +118,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = CreateTestingCertificateProvider(
       root_cert_, MakeCertKeyPairs(private_key_.c_str(), cert_chain_.c_str()));
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
@@ -138,7 +138,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider =
       CreateTestingCertificateProvider(root_cert_, PemKeyCertPairList());
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -157,7 +157,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = CreateTestingCertificateProvider(
       "", MakeCertKeyPairs(private_key_.c_str(), cert_chain_.c_str()));
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -191,7 +191,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = CreateTestingCertificateProvider(
       root_cert_, MakeCertKeyPairs(private_key_.c_str(), cert_chain_.c_str()));
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   options->set_cert_request_type(
       GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY);
@@ -250,7 +250,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto provider = MakeRefCounted<FileWatcherCertificateProvider>(
       SERVER_KEY_PATH, SERVER_CERT_PATH, CA_CERT_PATH,
       /*spiffe_bundle_map_file=*/"", 1);
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
@@ -270,7 +270,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = MakeRefCounted<FileWatcherCertificateProvider>(
       "", "", CA_CERT_PATH, /*spiffe_bundle_map_file=*/"", 1);
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -289,7 +289,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = MakeRefCounted<FileWatcherCertificateProvider>(
       SERVER_KEY_PATH, SERVER_CERT_PATH, "", /*spiffe_bundle_map_file=*/"", 1);
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -306,7 +306,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = MakeRefCounted<FileWatcherCertificateProvider>(
       "", "", INVALID_PATH, /*spiffe_bundle_map_file=*/"", 1);
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -324,7 +324,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto provider = MakeRefCounted<FileWatcherCertificateProvider>(
       SERVER_KEY_PATH, SERVER_CERT_PATH, CA_CERT_PATH,
       /*spiffe_bundle_map_file=*/"", 1);
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   options->set_cert_request_type(
       GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY);

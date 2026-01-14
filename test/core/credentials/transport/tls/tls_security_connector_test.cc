@@ -153,7 +153,7 @@ TEST_F(TlsSecurityConnectorTest,
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   RefCountedPtr<grpc_tls_credentials_options> options =
       MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   options->set_root_cert_name(kRootCertName);
   options->set_identity_cert_name(kIdentityCertName);
@@ -233,7 +233,7 @@ TEST_F(TlsSecurityConnectorTest,
   // Create options only watching for root certificates.
   RefCountedPtr<grpc_tls_credentials_options> root_options =
       MakeRefCounted<grpc_tls_credentials_options>();
-  root_options->set_root_certificate_provider(provider);
+  root_options->set_root_certificates_provider(provider);
   root_options->set_root_cert_name(kRootCertName);
   RefCountedPtr<TlsCredentials> root_credential =
       MakeRefCounted<TlsCredentials>(root_options);
@@ -262,7 +262,7 @@ TEST_F(TlsSecurityConnectorTest,
   // available at distributor right now.
   RefCountedPtr<grpc_tls_credentials_options> options =
       MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   options->set_root_cert_name(kRootCertName);
   options->set_identity_cert_name(kIdentityCertName);
@@ -295,7 +295,7 @@ TEST_F(TlsSecurityConnectorTest,
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   RefCountedPtr<grpc_tls_credentials_options> options =
       MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   options->set_root_cert_name(kRootCertName);
   options->set_identity_cert_name(kIdentityCertName);
@@ -440,7 +440,7 @@ TEST_F(TlsSecurityConnectorTest,
   RefCountedPtr<grpc_tls_certificate_provider> provider =
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_root_cert_name(kRootCertName);
   RefCountedPtr<TlsCredentials> credential =
       MakeRefCounted<TlsCredentials>(options);
@@ -465,7 +465,7 @@ TEST_F(TlsSecurityConnectorTest,
   RefCountedPtr<grpc_tls_certificate_provider> provider =
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_root_cert_name(kRootCertName);
   RefCountedPtr<TlsCredentials> credential =
       MakeRefCounted<TlsCredentials>(options);
@@ -474,7 +474,7 @@ TEST_F(TlsSecurityConnectorTest,
       credential->create_security_connector(nullptr, kTargetName,
                                             &connector_args);
   auto other_options = MakeRefCounted<grpc_tls_credentials_options>();
-  other_options->set_root_certificate_provider(provider);
+  other_options->set_root_certificates_provider(provider);
   other_options->set_identity_certificate_provider(provider);
   other_options->set_root_cert_name(kRootCertName);
   other_options->set_identity_cert_name(kIdentityCertName);
@@ -497,7 +497,7 @@ TEST_F(TlsSecurityConnectorTest,
   RefCountedPtr<grpc_tls_certificate_provider> provider =
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_root_cert_name(kRootCertName);
   RefCountedPtr<TlsCredentials> credential =
       MakeRefCounted<TlsCredentials>(options);
@@ -525,7 +525,7 @@ TEST_F(TlsSecurityConnectorTest,
   RefCountedPtr<grpc_tls_certificate_provider> provider =
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_root_cert_name(kRootCertName);
   RefCountedPtr<TlsCredentials> credential =
       MakeRefCounted<TlsCredentials>(options);
@@ -774,7 +774,7 @@ TEST_F(TlsSecurityConnectorTest,
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   RefCountedPtr<grpc_tls_credentials_options> options =
       MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   options->set_root_cert_name(kRootCertName);
   options->set_identity_cert_name(kIdentityCertName);
@@ -841,7 +841,7 @@ TEST_F(TlsSecurityConnectorTest,
   // available at distributor right now.
   RefCountedPtr<grpc_tls_credentials_options> options =
       MakeRefCounted<grpc_tls_credentials_options>();
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   options->set_identity_certificate_provider(provider);
   options->set_root_cert_name(kRootCertName);
   options->set_identity_cert_name(kIdentityCertName);
