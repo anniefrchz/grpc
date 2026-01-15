@@ -306,8 +306,7 @@ class AsyncSigningHandleReturnsError
     : public grpc_core::PrivateKeySigner::AsyncSigningHandle {
  public:
   explicit AsyncSigningHandleReturnsError() {}
-  ~AsyncSigningHandleReturnsError() override {
-  }
+  ~AsyncSigningHandleReturnsError() override {}
 
  private:
 };
