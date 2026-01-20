@@ -153,9 +153,9 @@ class TlsChannelCredsFactory : public ChannelCredsFactory<> {
           config->private_key_file(), config->certificate_file(),
           config->ca_certificate_file(), /*spiffe_bundle_map_file=*/"",
           config->refresh_interval().millis() / GPR_MS_PER_SEC);
-      options->set_root_certificates_provider(
+      options->set_root_certificate_provider(
           config->ca_certificate_file().empty() ? nullptr : provider);
-      options->set_identity_credentials_provider(
+      options->set_identity_certificate_provider(
           config->certificate_file().empty() ? nullptr : provider);
 >>>>>>> c0a9a7daea (Split providers)
     }
