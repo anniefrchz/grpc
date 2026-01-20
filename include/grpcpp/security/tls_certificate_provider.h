@@ -46,7 +46,7 @@ class GRPCXX_DLL CertificateProviderInterface {
 // to show local identity. The private_key and certificate_chain should always
 // match.
 struct GRPCXX_DLL IdentityKeyCertPair {
-  std::string private_key;
+  std::variant<std::string, std::shared_ptr<PrivateKeySigner>> private_key;
   std::string certificate_chain;
 };
 
