@@ -31,7 +31,6 @@
 #include "envoy/extensions/grpc_service/channel_credentials/xds/v3/xds_credentials.upb.h"
 #include "envoy/extensions/transport_sockets/tls/v3/tls.upb.h"
 #include "src/core/config/core_configuration.h"
-#include "src/core/credentials/call/call_credentials.h"
 #include "src/core/credentials/transport/channel_creds_registry.h"
 #include "src/core/credentials/transport/fake/fake_credentials.h"
 #include "src/core/credentials/transport/google_default/google_default_credentials.h"  // IWYU pragma: keep
