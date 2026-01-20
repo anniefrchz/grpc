@@ -155,7 +155,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = CreateTestingCertificateProvider(
       "", MakeCertKeyPairs(private_key_.c_str(), cert_chain_.c_str()));
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificates_provider(provider);
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -172,7 +172,12 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = CreateTestingCertificateProvider(
       "", MakeCertKeyPairs(private_key_.c_str(), cert_chain_.c_str()));
+<<<<<<< HEAD
   options->set_identity_certificate_provider(std::move(provider));
+=======
+  options->set_identity_certificate_provider(provider);
+  options->set_identity_credentials_provider(provider);
+>>>>>>> bb4ae558d0 (Replace StaticDataProvider with InMemoryCertificateProvider)
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -227,7 +232,11 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider =
       CreateTestingCertificateProvider(root_cert_, PemKeyCertPairList());
+<<<<<<< HEAD
   options->set_identity_certificate_provider(std::move(provider));
+=======
+  options->set_identity_certificate_provider(provider);
+>>>>>>> bb4ae558d0 (Replace StaticDataProvider with InMemoryCertificateProvider)
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   ASSERT_NE(credentials, nullptr);
@@ -525,7 +534,11 @@ TEST_F(GrpcTlsCredentialsOptionsTest, ServerOptionsWithExternalVerifier) {
   // On server side we have to set the provider providing identity certs.
   auto provider =
       CreateTestingCertificateProvider(root_cert_, PemKeyCertPairList());
+<<<<<<< HEAD
   options->set_identity_certificate_provider(std::move(provider));
+=======
+  options->set_identity_certificate_provider(provider);
+>>>>>>> bb4ae558d0 (Replace StaticDataProvider with InMemoryCertificateProvider)
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   auto connector = credentials->create_security_connector(ChannelArgs());
@@ -563,7 +576,11 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   // On server side we have to set the provider providing identity certs.
   auto provider =
       CreateTestingCertificateProvider(root_cert_, PemKeyCertPairList());
+<<<<<<< HEAD
   options->set_identity_certificate_provider(std::move(provider));
+=======
+  options->set_identity_certificate_provider(provider);
+>>>>>>> bb4ae558d0 (Replace StaticDataProvider with InMemoryCertificateProvider)
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   auto connector = credentials->create_security_connector(ChannelArgs());
