@@ -116,6 +116,7 @@ class TlsChannelCredsFactory : public ChannelCredsFactory<> {
       const override {
     auto* config = static_cast<const TlsConfig*>(base_config.get());
     auto options = MakeRefCounted<grpc_tls_credentials_options>();
+<<<<<<< HEAD
     if (!config->root_certificate_provider().instance_name.empty()) {
       options->set_root_certificate_provider(
           certificate_provider_store.CreateOrGetCertificateProvider(
@@ -143,6 +144,20 @@ class TlsChannelCredsFactory : public ChannelCredsFactory<> {
         options->set_identity_certificate_provider(
             config->certificate_file().empty() ? nullptr : provider);
       }
+=======
+    if (!config->certificate_file().empty() ||
+        !config->ca_certificate_file().empty()) {
+      // TODO(gtcooke94): Expose the spiffe_bundle_map option in the XDS
+      // bootstrap config to use here.
+      auto provider = MakeRefCounted<FileWatcherCertificateProvider>(
+          config->private_key_file(), config->certificate_file(),
+          config->ca_certificate_file(), /*spiffe_bundle_map_file=*/"",
+          config->refresh_interval().millis() / GPR_MS_PER_SEC);
+      options->set_root_certificates_provider(
+          config->ca_certificate_file().empty() ? nullptr : provider);
+      options->set_identity_credentials_provider(
+          config->certificate_file().empty() ? nullptr : provider);
+>>>>>>> c0a9a7daea (Split providers)
     }
     options->set_certificate_verifier(
         MakeRefCounted<HostNameCertificateVerifier>());
