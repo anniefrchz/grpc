@@ -184,9 +184,12 @@ class GRPCXX_DLL InMemoryCertificateProvider
   absl::Status UpdateRoot(const std::string& root_certificate);
   absl::Status UpdateIdentityKeyCertPair(
       const std::vector<IdentityKeyCertPair>& identity_key_cert_pairs);
+<<<<<<< HEAD
   absl::Status UpdateIdentityKeyCertPair(
       const std::vector<IdentityKeyOrSignerCertPair>&
           identity_key_or_signer_cert_pairs);
+=======
+>>>>>>> 35361fb17f (Replace StaticDataProvider with InMemoryCertificateProvider)
 
   // Returns an OK status if the following conditions hold:
   // - the root certificates consist of one or more valid PEM blocks, and
