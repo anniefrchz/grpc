@@ -157,7 +157,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   auto provider = CreateTestingCertificateProvider(
       "", MakeCertKeyPairs(private_key_.c_str(), cert_chain_.c_str()));
-  options->set_root_certificate_provider(provider);
+  options->set_root_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsCredentials>(options);
   ASSERT_NE(credentials, nullptr);
   ChannelArgs new_args;
@@ -227,8 +227,13 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
 TEST_F(GrpcTlsCredentialsOptionsTest,
        ServerOptionsWithInMemoryProviderOnNotProvidedCerts) {
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
+<<<<<<< HEAD
   auto provider =
       CreateTestingCertificateProvider(root_cert_, PemKeyCertPairList());
+=======
+  auto provider = MakeRefCounted<StaticDataCertificateProvider>(
+      root_cert_, PemKeyCertPairList());
+>>>>>>> c40864f8a1 (Use std::move on providers for tests and fix other nits)
   options->set_identity_certificate_provider(std::move(provider));
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
@@ -525,8 +530,13 @@ TEST_F(GrpcTlsCredentialsOptionsTest, ServerOptionsWithExternalVerifier) {
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   options->set_certificate_verifier(core_external_verifier.Ref());
   // On server side we have to set the provider providing identity certs.
+<<<<<<< HEAD
   auto provider =
       CreateTestingCertificateProvider(root_cert_, PemKeyCertPairList());
+=======
+  auto provider = MakeRefCounted<StaticDataCertificateProvider>(
+      root_cert_, PemKeyCertPairList());
+>>>>>>> c40864f8a1 (Use std::move on providers for tests and fix other nits)
   options->set_identity_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   ASSERT_NE(credentials, nullptr);
@@ -563,8 +573,13 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   options->set_certificate_verifier(hostname_certificate_verifier_.Ref());
   // On server side we have to set the provider providing identity certs.
+<<<<<<< HEAD
   auto provider =
       CreateTestingCertificateProvider(root_cert_, PemKeyCertPairList());
+=======
+  auto provider = MakeRefCounted<StaticDataCertificateProvider>(
+      root_cert_, PemKeyCertPairList());
+>>>>>>> c40864f8a1 (Use std::move on providers for tests and fix other nits)
   options->set_identity_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   ASSERT_NE(credentials, nullptr);
