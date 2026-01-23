@@ -2190,9 +2190,7 @@ static tsi_result ssl_handshaker_process_bytes_from_peer(
 
 static void ssl_handshaker_destroy(tsi_handshaker* self) {
   tsi_ssl_handshaker* impl = reinterpret_cast<tsi_ssl_handshaker*>(self);
-  LOG(INFO) << "aaaa";
   if (self->handshake_shutdown) {
-    LOG(INFO) << "aaaa";
     TlsPrivateKeyOffloadContext* offload_context =
         GetTlsPrivateKeyOffloadContext(impl->ssl);
     grpc_core::PrivateKeySigner* sign_function = GetPrivateKeySigner(impl->ssl);
