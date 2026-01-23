@@ -46,6 +46,14 @@ class GRPCXX_DLL CertificateProviderInterface {
 // to show local identity. The private_key and certificate_chain should always
 // match.
 struct GRPCXX_DLL IdentityKeyCertPair {
+  std::string private_key;
+  std::string certificate_chain;
+};
+
+// A struct that stores the credential data presented to the peer in handshake
+// to show local identity. The private_key and certificate_chain should always
+// match. The private_key can be either a PEM string or a PrivateKeySigner.
+struct GRPCXX_DLL IdentityKeyOrSignerCertPair {
   std::variant<std::string, std::shared_ptr<PrivateKeySigner>> private_key;
   std::string certificate_chain;
 };
@@ -60,12 +68,22 @@ class GRPCXX_DLL StaticDataCertificateProvider
       const std::string& root_certificate,
       const std::vector<IdentityKeyCertPair>& identity_key_cert_pairs);
 
+  StaticDataCertificateProvider(const std::string& root_certificate,
+                                const std::vector<IdentityKeyOrSignerCertPair>&
+                                    identity_key_or_signer_cert_pairs);
+
   explicit StaticDataCertificateProvider(const std::string& root_certificate)
-      : StaticDataCertificateProvider(root_certificate, {}) {}
+      : StaticDataCertificateProvider(root_certificate,
+                                      std::vector<IdentityKeyCertPair>{}) {}
 
   explicit StaticDataCertificateProvider(
       const std::vector<IdentityKeyCertPair>& identity_key_cert_pairs)
       : StaticDataCertificateProvider("", identity_key_cert_pairs) {}
+
+  explicit StaticDataCertificateProvider(
+      const std::vector<IdentityKeyOrSignerCertPair>&
+          identity_key_or_signer_cert_pairs)
+      : StaticDataCertificateProvider("", identity_key_or_signer_cert_pairs) {}
 
   ~StaticDataCertificateProvider() override;
 
@@ -166,6 +184,9 @@ class GRPCXX_DLL InMemoryCertificateProvider
   absl::Status UpdateRoot(const std::string& root_certificate);
   absl::Status UpdateIdentityKeyCertPair(
       const std::vector<IdentityKeyCertPair>& identity_key_cert_pairs);
+  absl::Status UpdateIdentityKeyCertPair(
+      const std::vector<IdentityKeyOrSignerCertPair>&
+          identity_key_or_signer_cert_pairs);
 
   // Returns an OK status if the following conditions hold:
   // - the root certificates consist of one or more valid PEM blocks, and
