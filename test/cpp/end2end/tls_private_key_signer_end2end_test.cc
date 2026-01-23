@@ -255,15 +255,16 @@ class TestPrivateKeySignerAsyncDelayed final
     event_engine->RunAfter(
         std::chrono::nanoseconds(absl::ToInt64Nanoseconds(delay_)),
         [self = shared_from_this(), data_to_sign = std::string(data_to_sign),
-         signature_algorithm, on_sign_complete = std::move(on_sign_complete)]() mutable {
-            on_sign_complete(SignWithBoringSSL(
-                data_to_sign, signature_algorithm, self->pkey_.get()));
+         signature_algorithm,
+         on_sign_complete = std::move(on_sign_complete)]() mutable {
+          on_sign_complete(SignWithBoringSSL(data_to_sign, signature_algorithm,
+                                             self->pkey_.get()));
         });
     return std::make_shared<grpc_core::PrivateKeySigner::AsyncSigningHandle>();
   }
 
   void Cancel(std::shared_ptr<grpc_core::PrivateKeySigner::AsyncSigningHandle>
-                  handle) override { }
+                  handle) override {}
 
  private:
   bssl::UniquePtr<EVP_PKEY> pkey_;
