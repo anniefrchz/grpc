@@ -255,15 +255,16 @@ class TestPrivateKeySignerAsyncDelayed final
     event_engine->RunAfter(
         std::chrono::nanoseconds(absl::ToInt64Nanoseconds(delay_)),
         [self = shared_from_this(), data_to_sign = std::string(data_to_sign),
-         signature_algorithm, on_sign_complete = std::move(on_sign_complete)]() mutable {
-            on_sign_complete(SignWithBoringSSL(
-                data_to_sign, signature_algorithm, self->pkey_.get()));
+         signature_algorithm,
+         on_sign_complete = std::move(on_sign_complete)]() mutable {
+          on_sign_complete(SignWithBoringSSL(data_to_sign, signature_algorithm,
+                                             self->pkey_.get()));
         });
     return std::make_shared<grpc_core::PrivateKeySigner::AsyncSigningHandle>();
   }
 
   void Cancel(std::shared_ptr<grpc_core::PrivateKeySigner::AsyncSigningHandle>
-                  handle) override { }
+                  handle) override {}
 
  private:
   bssl::UniquePtr<EVP_PKEY> pkey_;
@@ -376,11 +377,11 @@ TEST_F(TlsPrivateKeyOffloadTest, OffloadWithCustomKeySignerAsync) {
   std::string ca_cert =
       grpc_core::testing::GetFileContents(std::string(kCaPemPath));
 
-  experimental::IdentityKeyCertPair server_key_cert_pair;
-  std::vector<experimental::IdentityKeyCertPair> server_identity_key_cert_pairs;
+  std::vector<experimental::IdentityKeyOrSignerCertPair>
+      server_identity_key_cert_pairs;
   signer_ = std::make_shared<TestPrivateKeySignerAsync>(server_key);
   server_identity_key_cert_pairs.emplace_back(
-      grpc::experimental::IdentityKeyCertPair{signer_, server_cert});
+      grpc::experimental::IdentityKeyOrSignerCertPair{signer_, server_cert});
   auto server_certificate_provider =
       std::make_shared<experimental::InMemoryCertificateProvider>();
   ASSERT_TRUE(server_certificate_provider
@@ -425,12 +426,12 @@ TEST_F(TlsPrivateKeyOffloadTest, OffloadWithCustomKeySignerAsyncDelayed) {
   std::string ca_cert =
       grpc_core::testing::GetFileContents(std::string(kCaPemPath));
 
-  experimental::IdentityKeyCertPair server_key_cert_pair;
-  std::vector<experimental::IdentityKeyCertPair> server_identity_key_cert_pairs;
+  std::vector<experimental::IdentityKeyOrSignerCertPair>
+      server_identity_key_cert_pairs;
   signer_ = std::make_shared<TestPrivateKeySignerAsyncDelayed>(
       server_key, absl::Seconds(1));
   server_identity_key_cert_pairs.emplace_back(
-      grpc::experimental::IdentityKeyCertPair{signer_, server_cert});
+      grpc::experimental::IdentityKeyOrSignerCertPair{signer_, server_cert});
   auto server_certificate_provider =
       std::make_shared<experimental::InMemoryCertificateProvider>();
   ASSERT_TRUE(server_certificate_provider
@@ -496,9 +497,9 @@ TEST_F(TlsPrivateKeyOffloadTest, OffloadWithCustomKeySignerClientAsync) {
   auto client_certificate_provider =
       std::make_shared<experimental::InMemoryCertificateProvider>();
   signer_ = std::make_shared<TestPrivateKeySignerAsync>(client_key);
-  std::vector<grpc::experimental::IdentityKeyCertPair> identity_pairs;
+  std::vector<grpc::experimental::IdentityKeyOrSignerCertPair> identity_pairs;
   identity_pairs.emplace_back(
-      grpc::experimental::IdentityKeyCertPair{signer_, client_cert});
+      grpc::experimental::IdentityKeyOrSignerCertPair{signer_, client_cert});
   ASSERT_TRUE(
       client_certificate_provider->UpdateIdentityKeyCertPair(identity_pairs)
           .ok());
@@ -524,11 +525,11 @@ TEST_F(TlsPrivateKeyOffloadTest, OffloadWithCustomKeySignerSync) {
   std::string ca_cert =
       grpc_core::testing::GetFileContents(std::string(kCaPemPath));
 
-  experimental::IdentityKeyCertPair server_key_cert_pair;
-  std::vector<experimental::IdentityKeyCertPair> server_identity_key_cert_pairs;
+  std::vector<experimental::IdentityKeyOrSignerCertPair>
+      server_identity_key_cert_pairs;
   signer_ = std::make_shared<TestPrivateKeySignerSync>(server_key);
   server_identity_key_cert_pairs.emplace_back(
-      grpc::experimental::IdentityKeyCertPair{signer_, server_cert});
+      grpc::experimental::IdentityKeyOrSignerCertPair{signer_, server_cert});
   auto server_certificate_provider =
       std::make_shared<experimental::InMemoryCertificateProvider>();
   ASSERT_TRUE(server_certificate_provider
@@ -594,9 +595,9 @@ TEST_F(TlsPrivateKeyOffloadTest, OffloadWithCustomKeySignerClientSync) {
   auto client_certificate_provider =
       std::make_shared<experimental::InMemoryCertificateProvider>();
   signer_ = std::make_shared<TestPrivateKeySignerSync>(client_key);
-  std::vector<grpc::experimental::IdentityKeyCertPair> identity_pairs;
+  std::vector<grpc::experimental::IdentityKeyOrSignerCertPair> identity_pairs;
   identity_pairs.emplace_back(
-      grpc::experimental::IdentityKeyCertPair{signer_, client_cert});
+      grpc::experimental::IdentityKeyOrSignerCertPair{signer_, client_cert});
   ASSERT_TRUE(
       client_certificate_provider->UpdateIdentityKeyCertPair(identity_pairs)
           .ok());
@@ -622,11 +623,11 @@ TEST_F(TlsPrivateKeyOffloadTest, OffloadWithCustomKeySignerAsyncCancelled) {
   std::string ca_cert =
       grpc_core::testing::GetFileContents(std::string(kCaPemPath));
 
-  experimental::IdentityKeyCertPair server_key_cert_pair;
-  std::vector<experimental::IdentityKeyCertPair> server_identity_key_cert_pairs;
+  std::vector<experimental::IdentityKeyOrSignerCertPair>
+      server_identity_key_cert_pairs;
   signer_ = std::make_shared<TestPrivateKeySignerAsyncCancelled>(server_key);
   server_identity_key_cert_pairs.emplace_back(
-      grpc::experimental::IdentityKeyCertPair{signer_, server_cert});
+      grpc::experimental::IdentityKeyOrSignerCertPair{signer_, server_cert});
   auto server_certificate_provider =
       std::make_shared<experimental::InMemoryCertificateProvider>();
   ASSERT_TRUE(server_certificate_provider
