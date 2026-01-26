@@ -227,7 +227,7 @@ TEST_F(GrpcTlsCredentialsOptionsTest,
 TEST_F(GrpcTlsCredentialsOptionsTest,
        ServerOptionsWithInMemoryProviderOnNotProvidedCerts) {
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
-  auto provider = MakeRefCounted<StaticDataCertificateProvider>(
+  auto provider = CreateTestingCertificateProvider(
       root_cert_, PemKeyCertPairList());
   options->set_identity_certificate_provider(std::move(provider));
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
