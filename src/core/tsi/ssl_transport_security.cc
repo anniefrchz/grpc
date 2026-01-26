@@ -481,6 +481,16 @@ void PrivateKeyOffloadingContextFree(void* parent, void* ptr,
   if (ctx == nullptr) {
     return;
   }
+  if (ctx->status == TlsPrivateKeyOffloadContext::kInProgressAsync &&
+      ctx->signing_handle != nullptr) {
+    SSL* ssl = static_cast<SSL*>(parent);
+    grpc_core::PrivateKeySigner* signer = GetPrivateKeySigner(ssl);
+    if (signer != nullptr) {
+      TlsOffloadSignDoneCallback(ctx,
+                                 absl::CancelledError("Handshaker shutdown"));
+      signer->Cancel(ctx->signing_handle);
+    }
+  }
   delete ctx;
 }
 
@@ -2190,19 +2200,20 @@ static tsi_result ssl_handshaker_process_bytes_from_peer(
 
 static void ssl_handshaker_destroy(tsi_handshaker* self) {
   tsi_ssl_handshaker* impl = reinterpret_cast<tsi_ssl_handshaker*>(self);
-  if (self->handshake_shutdown) {
-    TlsPrivateKeyOffloadContext* offload_context =
-        GetTlsPrivateKeyOffloadContext(impl->ssl);
-    grpc_core::PrivateKeySigner* sign_function = GetPrivateKeySigner(impl->ssl);
-    if (offload_context != nullptr && sign_function != nullptr &&
-        offload_context->signing_handle != nullptr &&
-        offload_context->status ==
-            TlsPrivateKeyOffloadContext::kInProgressAsync) {
-      TlsOffloadSignDoneCallback(offload_context,
-                                 absl::CancelledError("Handshaker shutdown"));
-      sign_function->Cancel(offload_context->signing_handle);
-    }
+  /*
+  TlsPrivateKeyOffloadContext* offload_context =
+      GetTlsPrivateKeyOffloadContext(impl->ssl);
+  grpc_core::PrivateKeySigner* sign_function = GetPrivateKeySigner(impl->ssl);
+  if (offload_context != nullptr && sign_function != nullptr &&
+      offload_context->signing_handle != nullptr &&
+      offload_context->status ==
+          TlsPrivateKeyOffloadContext::kInProgressAsync) {
+    LOG(ERROR) << "Shutdown Cancel";
+    TlsOffloadSignDoneCallback(offload_context,
+                               absl::CancelledError("Handshaker shutdown"));
+    sign_function->Cancel(offload_context->signing_handle);
   }
+    */
   SSL_free(impl->ssl);
   BIO_free(impl->network_io);
   gpr_free(impl->outgoing_bytes_buffer);
@@ -2468,7 +2479,23 @@ static tsi_result ssl_handshaker_next(
   return result;
 }
 
-static void ssl_handshaker_shutdown(tsi_handshaker* self) {}
+static void ssl_handshaker_shutdown(tsi_handshaker* self) {
+  tsi_ssl_handshaker* impl = reinterpret_cast<tsi_ssl_handshaker*>(self);
+  TlsPrivateKeyOffloadContext* offload_context =
+      GetTlsPrivateKeyOffloadContext(impl->ssl);
+  grpc_core::PrivateKeySigner* signer = GetPrivateKeySigner(impl->ssl);
+  if (offload_context != nullptr && signer != nullptr &&
+      offload_context->status ==
+          TlsPrivateKeyOffloadContext::kInProgressAsync) {
+    grpc_event_engine::experimental::GetDefaultEventEngine()->Run(
+        [offload_context, signer]() {
+          grpc_core::ExecCtx exec_ctx;
+          TlsOffloadSignDoneCallback(
+              offload_context, absl::CancelledError("Handshaker shutdown"));
+          signer->Cancel(offload_context->signing_handle);
+        });
+  }
+}
 
 static const tsi_handshaker_vtable handshaker_vtable = {
     nullptr,  // get_bytes_to_send_to_peer -- deprecated
@@ -2478,7 +2505,7 @@ static const tsi_handshaker_vtable handshaker_vtable = {
     nullptr,  // create_frame_protector    -- deprecated
     ssl_handshaker_destroy,
     ssl_handshaker_next,
-    ssl_handshaker_shutdown,  // shutdown
+    ssl_handshaker_shutdown,
 };
 
 // --- tsi_ssl_handshaker_factory common methods. ---
