@@ -24,7 +24,6 @@
 
 #include <optional>
 
-#include "src/core/credentials/transport/tls/grpc_tls_certificate_provider.h"
 #include "src/core/credentials/transport/tls/grpc_tls_credentials_options.h"
 #include "src/core/credentials/transport/tls/tls_credentials.h"
 #include "src/core/credentials/transport/tls/tls_utils.h"
