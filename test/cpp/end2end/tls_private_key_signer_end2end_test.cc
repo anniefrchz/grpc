@@ -650,9 +650,8 @@ TEST_F(TlsPrivateKeyOffloadTest, OffloadWithCustomKeySignerAsyncCancelled) {
   options.set_identity_cert_name("identity");
   options.set_check_call_host(false);
 
-  DoRpcAndExpectFailure(server_addr_, options, [this]() {
-    server_->Shutdown();
-  });
+  DoRpcAndExpectFailure(server_addr_, options,
+                        [this]() { server_->Shutdown(); });
 }
 
 }  // namespace
