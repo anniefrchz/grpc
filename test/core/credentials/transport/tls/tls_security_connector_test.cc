@@ -65,20 +65,20 @@ class TlsSecurityConnectorTest : public ::testing::Test {
   TlsSecurityConnectorTest() {}
 
   void SetUp() override {
-    root_cert_1_ =
-        std::make_shared<RootCertInfo>(testing::GetFileContents(CA_CERT_PATH));
+    root_cert_1_ = std::make_shared<RootCertInfo>(
+        grpc_core::testing::GetFileContents(CA_CERT_PATH));
     root_cert_0_ = std::make_shared<RootCertInfo>(
-        testing::GetFileContents(CLIENT_CERT_PATH));
+        grpc_core::testing::GetFileContents(CLIENT_CERT_PATH));
     identity_pairs_1_.emplace_back(
-        testing::GetFileContents(SERVER_KEY_PATH_1),
-        testing::GetFileContents(SERVER_CERT_PATH_1));
+        grpc_core::testing::GetFileContents(SERVER_KEY_PATH_1),
+        grpc_core::testing::GetFileContents(SERVER_CERT_PATH_1));
     identity_pairs_0_.emplace_back(
-        testing::GetFileContents(SERVER_KEY_PATH_0),
-        testing::GetFileContents(SERVER_CERT_PATH_0));
-    auto map0 = SpiffeBundleMap::FromFile(kSpiffeBundlePath0);
+        grpc_core::testing::GetFileContents(SERVER_KEY_PATH_0),
+        grpc_core::testing::GetFileContents(SERVER_CERT_PATH_0));
+    auto map0 = grpc_core::SpiffeBundleMap::FromFile(kSpiffeBundlePath0);
     GRPC_CHECK(map0.ok());
     spiffe_bundle_map_0_ = std::make_shared<RootCertInfo>(std::move(*map0));
-    auto map1 = SpiffeBundleMap::FromFile(kSpiffeBundlePath1);
+    auto map1 = grpc_core::SpiffeBundleMap::FromFile(kSpiffeBundlePath1);
     GRPC_CHECK(map1.ok());
     spiffe_bundle_map_1_ = std::make_shared<RootCertInfo>(std::move(*map1));
   }
@@ -94,11 +94,11 @@ class TlsSecurityConnectorTest : public ::testing::Test {
 
   std::shared_ptr<RootCertInfo> root_cert_1_;
   std::shared_ptr<RootCertInfo> root_cert_0_;
-  PemKeyCertPairList identity_pairs_1_;
-  PemKeyCertPairList identity_pairs_0_;
+  grpc_core::PemKeyCertPairList identity_pairs_1_;
+  grpc_core::PemKeyCertPairList identity_pairs_0_;
   std::shared_ptr<RootCertInfo> spiffe_bundle_map_0_;
   std::shared_ptr<RootCertInfo> spiffe_bundle_map_1_;
-  HostNameCertificateVerifier hostname_certificate_verifier_;
+  grpc_core::HostNameCertificateVerifier hostname_certificate_verifier_;
 };
 
 class TlsTestCertificateProvider : public grpc_tls_certificate_provider {
@@ -132,11 +132,11 @@ class TlsTestCertificateProvider : public grpc_tls_certificate_provider {
 
 TEST_F(TlsSecurityConnectorTest,
        RootAndIdentityCertsObtainedWhenCreateChannelSecurityConnector) {
-  RefCountedPtr<grpc_tls_certificate_distributor> distributor =
-      MakeRefCounted<grpc_tls_certificate_distributor>();
+  grpc_core::RefCountedPtr<grpc_tls_certificate_distributor> distributor =
+      grpc_core::MakeRefCounted<grpc_tls_certificate_distributor>();
   distributor->SetKeyMaterials(kRootCertName, root_cert_0_, std::nullopt);
   distributor->SetKeyMaterials(kIdentityCertName, nullptr, identity_pairs_0_);
-  RefCountedPtr<grpc_tls_certificate_provider> provider =
+  grpc_core::RefCountedPtr<grpc_tls_certificate_provider> provider =
       MakeRefCounted<TlsTestCertificateProvider>(distributor);
   RefCountedPtr<grpc_tls_credentials_options> options =
       MakeRefCounted<grpc_tls_credentials_options>();
