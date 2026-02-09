@@ -50,10 +50,6 @@ RefCountedPtr<grpc_tls_certificate_provider> CreateTestingCertificateProvider(
     const std::string& root_cert_info,
     const PemKeyCertPairList& pem_key_cert_pairs) {
   auto provider = MakeRefCounted<InMemoryCertificateProvider>();
-  EXPECT_TRUE(
-      provider->UpdateRoot(std::make_shared<RootCertInfo>(root_cert_info))
-          .ok());
-  EXPECT_TRUE(provider->UpdateIdentityKeyCertPair(pem_key_cert_pairs).ok());
   return provider;
 }
 }  // namespace
@@ -968,7 +964,7 @@ TEST_F(TlsSecurityConnectorTest,
       MakeRefCounted<grpc_tls_credentials_options>();
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   options->set_certificate_verifier(core_external_verifier.Ref());
-  auto provider = CreateTestingCertificateProvider("", PemKeyCertPairList());
+  auto provider = MakeRefCounted<InMemoryCertificateProvider>();
   options->set_identity_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   auto connector = credentials->create_security_connector(ChannelArgs());
@@ -997,7 +993,7 @@ TEST_F(TlsSecurityConnectorTest,
       MakeRefCounted<grpc_tls_credentials_options>();
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   options->set_certificate_verifier(core_external_verifier.Ref());
-  auto provider = CreateTestingCertificateProvider("", PemKeyCertPairList());
+  auto provider = MakeRefCounted<InMemoryCertificateProvider>();
   options->set_identity_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   auto connector = credentials->create_security_connector(ChannelArgs());
@@ -1030,7 +1026,7 @@ TEST_F(TlsSecurityConnectorTest,
   auto options = MakeRefCounted<grpc_tls_credentials_options>();
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   options->set_certificate_verifier(core_external_verifier->Ref());
-  auto provider = CreateTestingCertificateProvider("", PemKeyCertPairList());
+  auto provider = MakeRefCounted<InMemoryCertificateProvider>();
   options->set_identity_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   auto connector = credentials->create_security_connector(ChannelArgs());
@@ -1061,7 +1057,7 @@ TEST_F(TlsSecurityConnectorTest,
       MakeRefCounted<grpc_tls_credentials_options>();
   options->set_cert_request_type(GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE);
   options->set_certificate_verifier(core_external_verifier->Ref());
-  auto provider = CreateTestingCertificateProvider("", PemKeyCertPairList());
+  auto provider = MakeRefCounted<InMemoryCertificateProvider>();
   options->set_identity_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   auto connector = credentials->create_security_connector(ChannelArgs());
@@ -1096,7 +1092,7 @@ TEST_F(TlsSecurityConnectorTest,
   options->set_cert_request_type(
       GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY);
   options->set_certificate_verifier(core_external_verifier.Ref());
-  auto provider = CreateTestingCertificateProvider("", PemKeyCertPairList());
+  auto provider = MakeRefCounted<InMemoryCertificateProvider>();
   options->set_identity_certificate_provider(std::move(provider));
   auto credentials = MakeRefCounted<TlsServerCredentials>(options);
   auto connector = credentials->create_security_connector(ChannelArgs());
