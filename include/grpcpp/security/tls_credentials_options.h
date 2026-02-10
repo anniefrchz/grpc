@@ -28,6 +28,7 @@
 #include <grpcpp/support/config.h>
 
 #include <memory>
+#include <vector>
 
 namespace grpc {
 namespace experimental {

@@ -26,6 +26,8 @@
 #include "src/core/config/config_vars.h"
 #include "src/core/credentials/transport/tls/tls_credentials.h"
 #include "src/core/credentials/transport/tls/tls_security_connector.h"
+#include "src/core/util/crash.h"
+#include "src/core/util/tmpfile.h"
 #include "test/core/test_util/test_config.h"
 #include "test/core/test_util/tls_utils.h"
 #include "gmock/gmock.h"
