@@ -44,6 +44,7 @@
 #define SERVER_CERT_PATH_1 "src/core/tsi/test_creds/server1.pem"
 #define SERVER_KEY_PATH_1 "src/core/tsi/test_creds/server1.key"
 
+namespace grpc_core {
 namespace testing {
 
 constexpr const char* kRootCertName = "root_cert_name";
