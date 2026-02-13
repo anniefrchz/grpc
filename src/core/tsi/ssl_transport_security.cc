@@ -2187,8 +2187,8 @@ static tsi_result ssl_handshaker_do_handshake(tsi_ssl_handshaker* impl,
                   << tsi::SslErrorString(ssl_result) << ": " << err_str
                   << verify_result_str;
         if (error != nullptr) {
-          *error = absl::StrCat(tsi::SslErrorString(ssl_result), ": ",
-                                err_str, verify_result_str);
+          *error = absl::StrCat(tsi::SslErrorString(ssl_result), ": ", err_str,
+                                verify_result_str);
         }
         impl->result = TSI_PROTOCOL_FAILURE;
         return impl->result;
