@@ -383,12 +383,12 @@ TEST_P(FlowTest,
       GetParam().expected_encrypted_bytes_size);
   std::size_t protected_output_frames_size = protected_output_frames.size();
 
-  EXPECT_EQ(SslProtectorProtect(unprotected_bytes.data(), client_buffer.size(),
-                                client_buffer_offset, client_buffer.data(),
-                                client_ssl, client_bio, &unprotected_bytes_size,
-                                protected_output_frames.data(),
-                                &protected_output_frames_size),
-            tsi_result::TSI_OK);
+  EXPECT_EQ(
+      tsi::SslProtectorProtect(
+          unprotected_bytes.data(), client_buffer.size(), client_buffer_offset,
+          client_buffer.data(), client_ssl, client_bio, &unprotected_bytes_size,
+          protected_output_frames.data(), &protected_output_frames_size),
+      tsi_result::TSI_OK);
 
   // If |GetParam().plaintext_size| is larger than the inner client_buffer
   // size (kMaxPlaintextBytesPerTlsRecord), then |Protect| will copy up to
@@ -403,7 +403,7 @@ TEST_P(FlowTest,
     protected_output_frames_size = protected_output_frames.size();
 
     std::size_t still_pending_size = 0;
-    EXPECT_EQ(SslProtectorProtectFlush(
+    EXPECT_EQ(tsi::SslProtectorProtectFlush(
                   client_buffer_offset, client_buffer.data(), client_ssl,
                   client_bio, protected_output_frames.data(),
                   &protected_output_frames_size, &still_pending_size),
@@ -425,10 +425,10 @@ TEST_P(FlowTest,
   std::size_t unprotected_output_bytes_size = unprotected_output_bytes.size();
 
   // This frame should be decrypted by peer correctly.
-  EXPECT_EQ(SslProtectorUnprotect(protected_output_frames.data(), server_ssl,
-                                  server_bio, &protected_output_frames_size,
-                                  unprotected_output_bytes.data(),
-                                  &unprotected_output_bytes_size),
+  EXPECT_EQ(tsi::SslProtectorUnprotect(
+                protected_output_frames.data(), server_ssl, server_bio,
+                &protected_output_frames_size, unprotected_output_bytes.data(),
+                &unprotected_output_bytes_size),
             tsi_result::TSI_OK);
   EXPECT_EQ(unprotected_output_bytes_size, unprotected_bytes_size);
   unprotected_output_bytes.resize(unprotected_output_bytes_size);
@@ -445,12 +445,12 @@ TEST_P(FlowTest,
       GetParam().expected_encrypted_bytes_size);
   std::size_t protected_output_frames_size = protected_output_frames.size();
 
-  EXPECT_EQ(SslProtectorProtect(unprotected_bytes.data(), server_buffer.size(),
-                                server_buffer_offset, server_buffer.data(),
-                                server_ssl, server_bio, &unprotected_bytes_size,
-                                protected_output_frames.data(),
-                                &protected_output_frames_size),
-            tsi_result::TSI_OK);
+  EXPECT_EQ(
+      tsi::SslProtectorProtect(
+          unprotected_bytes.data(), server_buffer.size(), server_buffer_offset,
+          server_buffer.data(), server_ssl, server_bio, &unprotected_bytes_size,
+          protected_output_frames.data(), &protected_output_frames_size),
+      tsi_result::TSI_OK);
 
   // If |GetParam().plaintext_size| is larger than the inner server_buffer
   // size (kMaxPlaintextBytesPerTlsRecord), then |Protect| will copy up to
@@ -465,7 +465,7 @@ TEST_P(FlowTest,
     protected_output_frames_size = protected_output_frames.size();
 
     std::size_t still_pending_size = 0;
-    EXPECT_EQ(SslProtectorProtectFlush(
+    EXPECT_EQ(tsi::SslProtectorProtectFlush(
                   server_buffer_offset, server_buffer.data(), server_ssl,
                   server_bio, protected_output_frames.data(),
                   &protected_output_frames_size, &still_pending_size),
@@ -487,10 +487,10 @@ TEST_P(FlowTest,
   std::size_t unprotected_output_bytes_size = unprotected_output_bytes.size();
 
   // This frame should be decrypted by peer correctly.
-  EXPECT_EQ(SslProtectorUnprotect(protected_output_frames.data(), client_ssl,
-                                  client_bio, &protected_output_frames_size,
-                                  unprotected_output_bytes.data(),
-                                  &unprotected_output_bytes_size),
+  EXPECT_EQ(tsi::SslProtectorUnprotect(
+                protected_output_frames.data(), client_ssl, client_bio,
+                &protected_output_frames_size, unprotected_output_bytes.data(),
+                &unprotected_output_bytes_size),
             tsi_result::TSI_OK);
   EXPECT_EQ(unprotected_output_bytes_size, unprotected_bytes_size);
   unprotected_output_bytes.resize(unprotected_output_bytes_size);
@@ -639,14 +639,16 @@ TEST_F(CrlUtils, VerifyIssuerNameNullCrlAndCert) {
   EXPECT_FALSE(VerifyCrlCertIssuerNamesMatch(nullptr, nullptr));
 }
 
-TEST_F(CrlUtils, HasCrlSignBitExists) { EXPECT_TRUE(HasCrlSignBit(root_ca_)); }
+TEST_F(CrlUtils, HasCrlSignBitExists) {
+  EXPECT_TRUE(tsi::HasCrlSignBit(root_ca_));
+}
 
 TEST_F(CrlUtils, HasCrlSignBitMissing) {
-  EXPECT_FALSE(HasCrlSignBit(leaf_cert_));
+  EXPECT_FALSE(tsi::HasCrlSignBit(leaf_cert_));
 }
 
 TEST_F(CrlUtils, HasCrlSignBitNullCert) {
-  EXPECT_FALSE(HasCrlSignBit(nullptr));
+  EXPECT_FALSE(tsi::HasCrlSignBit(nullptr));
 }
 
 TEST_F(CrlUtils, IssuerFromIntermediateCert) {
@@ -854,7 +856,8 @@ TEST(ParseUriString, ValidUri) {
   ASN1_IA5STRING* uri = ASN1_IA5STRING_new();
   ASN1_STRING_set(uri, "spiffe://foo.bar/path", -1);
   GENERAL_NAME_set0_value(subject_alt_name, GEN_URI, uri);
-  absl::StatusOr<std::string> parsed_uri = ParseUriString(subject_alt_name);
+  absl::StatusOr<std::string> parsed_uri =
+      tsi::ParseUriString(subject_alt_name);
   ASSERT_EQ(parsed_uri.status(), absl::OkStatus());
   EXPECT_EQ(*parsed_uri, "spiffe://foo.bar/path");
   GENERAL_NAME_free(subject_alt_name);
@@ -865,7 +868,8 @@ TEST(ParseUriString, EmptyUri) {
   ASN1_IA5STRING* uri = ASN1_IA5STRING_new();
   ASN1_STRING_set(uri, "", -1);
   GENERAL_NAME_set0_value(subject_alt_name, GEN_URI, uri);
-  absl::StatusOr<std::string> parsed_uri = ParseUriString(subject_alt_name);
+  absl::StatusOr<std::string> parsed_uri =
+      tsi::ParseUriString(subject_alt_name);
   ASSERT_EQ(parsed_uri.status(), absl::OkStatus());
   EXPECT_EQ(*parsed_uri, "");
   GENERAL_NAME_free(subject_alt_name);
@@ -879,7 +883,8 @@ TEST(ParseUriString, InvalidUtf8) {
   ASN1_STRING_set(reinterpret_cast<ASN1_STRING*>(uri), invalid_utf8,
                   sizeof(invalid_utf8));
   GENERAL_NAME_set0_value(subject_alt_name, GEN_URI, uri);
-  absl::StatusOr<std::string> parsed_uri = ParseUriString(subject_alt_name);
+  absl::StatusOr<std::string> parsed_uri =
+      tsi::ParseUriString(subject_alt_name);
   EXPECT_EQ(parsed_uri.status().code(), absl::StatusCode::kInvalidArgument);
   GENERAL_NAME_free(subject_alt_name);
 }
@@ -889,7 +894,8 @@ TEST(ParseUriString, WrongType) {
   ASN1_UTF8STRING* other = ASN1_UTF8STRING_new();
   ASN1_STRING_set(other, "foo", -1);
   GENERAL_NAME_set0_value(subject_alt_name, GEN_DNS, other);
-  absl::StatusOr<std::string> parsed_uri = ParseUriString(subject_alt_name);
+  absl::StatusOr<std::string> parsed_uri =
+      tsi::ParseUriString(subject_alt_name);
   EXPECT_EQ(parsed_uri.status().code(), absl::StatusCode::kInvalidArgument);
   GENERAL_NAME_free(subject_alt_name);
 }
@@ -898,7 +904,8 @@ TEST(ParseUriString, DontSetASN1String) {
   GENERAL_NAME* subject_alt_name = GENERAL_NAME_new();
   ASN1_UTF8STRING* other = ASN1_UTF8STRING_new();
   GENERAL_NAME_set0_value(subject_alt_name, GEN_DNS, other);
-  absl::StatusOr<std::string> parsed_uri = ParseUriString(subject_alt_name);
+  absl::StatusOr<std::string> parsed_uri =
+      tsi::ParseUriString(subject_alt_name);
   EXPECT_EQ(parsed_uri.status().code(), absl::StatusCode::kInvalidArgument);
   GENERAL_NAME_free(subject_alt_name);
 }
