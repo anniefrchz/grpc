@@ -223,8 +223,8 @@ struct tsi_ssl_frame_protector {
 
 namespace {
 
-static void MaybeSetHandshakerNextArgsError(tsi_ssl_handshaker* handshaker,
-                                            absl::string_view error) {
+void MaybeSetHandshakerNextArgsError(tsi_ssl_handshaker* handshaker,
+                                     absl::string_view error) {
   if (handshaker == nullptr) {
     return;
   }
@@ -2427,7 +2427,7 @@ static void ssl_handshaker_shutdown(tsi_handshaker* self) {
       signing_handle = std::move(impl->signing_handle);
     }
     if (impl->handshaker_next_args.has_value()) {
-      next_args = std::move(*impl->handshaker_next_args);
+      next_args = *impl->handshaker_next_args;
       impl->handshaker_next_args.reset();
     }
   }
@@ -2436,7 +2436,7 @@ static void ssl_handshaker_shutdown(tsi_handshaker* self) {
   }
   if (next_args.has_value()) {
     grpc_event_engine::experimental::GetDefaultEventEngine()->Run(
-        [args = std::move(*next_args)]() mutable {
+        [args = *next_args]() mutable {
           if (args.error != nullptr) {
             *args.error = "Handshaker shutdown";
           }
