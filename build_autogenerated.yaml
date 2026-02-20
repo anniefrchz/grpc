@@ -185,6 +185,7 @@ libs:
   - include/grpc/impl/slice_type.h
   - include/grpc/load_reporting.h
   - include/grpc/passive_listener.h
+  - include/grpc/private_key_signer.h
   - include/grpc/slice.h
   - include/grpc/slice_buffer.h
   - include/grpc/status.h
@@ -2231,6 +2232,7 @@ libs:
   - src/core/xds/grpc/xds_endpoint_parser.cc
   - src/core/xds/grpc/xds_health_status.cc
   - src/core/xds/grpc/xds_http_fault_filter.cc
+  - src/core/xds/grpc/xds_http_filter.cc
   - src/core/xds/grpc/xds_http_filter_registry.cc
   - src/core/xds/grpc/xds_http_gcp_authn_filter.cc
   - src/core/xds/grpc/xds_http_rbac_filter.cc
@@ -2423,6 +2425,7 @@ libs:
   - include/grpc/impl/slice_type.h
   - include/grpc/load_reporting.h
   - include/grpc/passive_listener.h
+  - include/grpc/private_key_signer.h
   - include/grpc/slice.h
   - include/grpc/slice_buffer.h
   - include/grpc/status.h
@@ -4107,6 +4110,7 @@ libs:
   - include/grpcpp/security/tls_certificate_verifier.h
   - include/grpcpp/security/tls_credentials_options.h
   - include/grpcpp/security/tls_crl_provider.h
+  - include/grpcpp/security/tls_private_key_signer.h
   - include/grpcpp/server.h
   - include/grpcpp/server_builder.h
   - include/grpcpp/server_context.h
@@ -4487,6 +4491,7 @@ libs:
   - include/grpcpp/security/tls_certificate_verifier.h
   - include/grpcpp/security/tls_credentials_options.h
   - include/grpcpp/security/tls_crl_provider.h
+  - include/grpcpp/security/tls_private_key_signer.h
   - include/grpcpp/server.h
   - include/grpcpp/server_builder.h
   - include/grpcpp/server_context.h
@@ -4623,6 +4628,7 @@ libs:
   - include/grpc/impl/slice_type.h
   - include/grpc/load_reporting.h
   - include/grpc/passive_listener.h
+  - include/grpc/private_key_signer.h
   - include/grpc/slice.h
   - include/grpc/slice_buffer.h
   - include/grpc/status.h
@@ -5460,18 +5466,6 @@ libs:
   - grpc++
   - opentelemetry-cpp::api
 targets:
-- name: fd_conservation_posix_test
-  build: test
-  language: c
-  headers: []
-  src:
-  - test/core/iomgr/fd_conservation_posix_test.cc
-  deps:
-  - grpc_test_util
-  platforms:
-  - linux
-  - posix
-  - mac
 - name: multiple_server_queues_test
   build: test
   language: c
@@ -12603,6 +12597,20 @@ targets:
   deps:
   - gtest
   - grpc_test_util
+- name: fd_conservation_posix_test
+  gtest: true
+  build: test
+  language: c++
+  headers: []
+  src:
+  - test/core/iomgr/fd_conservation_posix_test.cc
+  deps:
+  - gtest
+  - grpc_test_util
+  platforms:
+  - linux
+  - posix
+  - mac
 - name: fd_posix_test
   gtest: true
   build: test
@@ -20682,6 +20690,18 @@ targets:
   - absl/utility:utility
   - gpr
   uses_polling: false
+- name: private_key_offload_test
+  gtest: true
+  build: test
+  language: c++
+  headers:
+  - test/core/tsi/transport_security_test_lib.h
+  src:
+  - test/core/tsi/private_key_offload_test.cc
+  - test/core/tsi/transport_security_test_lib.cc
+  deps:
+  - gtest
+  - grpc_test_util
 - name: promise_endpoint_test
   gtest: true
   build: test
@@ -25266,6 +25286,25 @@ targets:
   deps:
   - gtest
   - grpc++_test_util
+- name: tls_private_key_signer_end2end_test
+  gtest: true
+  build: test
+  language: c++
+  headers:
+  - test/cpp/end2end/test_service_impl.h
+  src:
+  - src/proto/grpc/testing/echo.proto
+  - src/proto/grpc/testing/echo_messages.proto
+  - src/proto/grpc/testing/simple_messages.proto
+  - third_party/googleapis/google/api/http.proto
+  - third_party/googleapis/google/rpc/status.proto
+  - third_party/protoc-gen-validate/validate/validate.proto
+  - third_party/xds/xds/data/orca/v3/orca_load_report.proto
+  - test/cpp/end2end/test_service_impl.cc
+  - test/cpp/end2end/tls_private_key_signer_end2end_test.cc
+  deps:
+  - gtest
+  - grpc++_test_util
 - name: tls_security_connector_test
   gtest: true
   build: test
@@ -27001,6 +27040,18 @@ targets:
   deps:
   - gtest
   - protobuf
+  - grpc_test_util
+- name: write_cycle_test
+  gtest: true
+  build: test
+  language: c++
+  headers:
+  - src/core/ext/transport/chttp2/transport/write_cycle.h
+  src:
+  - src/core/ext/transport/chttp2/transport/write_cycle.cc
+  - test/core/transport/chttp2/write_cycle_test.cc
+  deps:
+  - gtest
   - grpc_test_util
 - name: write_size_policy_test
   gtest: true
@@ -31317,6 +31368,17 @@ targets:
   - linux
   - posix
   - mac
+- name: xds_routing_test
+  gtest: true
+  build: test
+  language: c++
+  headers: []
+  src:
+  - test/core/xds/xds_routing_test.cc
+  deps:
+  - gtest
+  - grpc_test_util
+  uses_polling: false
 - name: xds_security_end2end_test
   gtest: true
   build: test

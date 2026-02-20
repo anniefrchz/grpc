@@ -1575,6 +1575,7 @@ LIBGRPC_SRC = \
     src/core/xds/grpc/xds_endpoint_parser.cc \
     src/core/xds/grpc/xds_health_status.cc \
     src/core/xds/grpc/xds_http_fault_filter.cc \
+    src/core/xds/grpc/xds_http_filter.cc \
     src/core/xds/grpc/xds_http_filter_registry.cc \
     src/core/xds/grpc/xds_http_gcp_authn_filter.cc \
     src/core/xds/grpc/xds_http_rbac_filter.cc \
@@ -1862,6 +1863,7 @@ PUBLIC_HEADERS_C += \
     include/grpc/impl/slice_type.h \
     include/grpc/load_reporting.h \
     include/grpc/passive_listener.h \
+    include/grpc/private_key_signer.h \
     include/grpc/slice.h \
     include/grpc/slice_buffer.h \
     include/grpc/status.h \
