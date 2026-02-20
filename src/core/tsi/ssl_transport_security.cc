@@ -394,7 +394,7 @@ enum ssl_private_key_result_t TlsPrivateKeyOffloadComplete(SSL* ssl,
                                                            uint8_t* out,
                                                            size_t* out_len,
                                                            size_t max_out)
-    ABSL_EXCLUSIVE_LOCKS_REQUIRED(&GetHandshaker(ssl)->mu)  {
+    ABSL_EXCLUSIVE_LOCKS_REQUIRED(&GetHandshaker(ssl)->mu) {
   auto* handshaker = GetHandshaker(ssl);
   if (handshaker == nullptr) return ssl_private_key_failure;
   handshaker->mu.AssertHeld();
@@ -2243,7 +2243,7 @@ static tsi_result ssl_handshaker_write_output_buffer(tsi_handshaker* self,
 }
 
 static tsi_result ssl_handshaker_next_impl(
-    tsi_ssl_handshaker* self, HandshakerNextArgs* handshaker_next_args) 
+    tsi_ssl_handshaker* self, HandshakerNextArgs* handshaker_next_args)
     ABSL_EXCLUSIVE_LOCKS_REQUIRED(&self->mu) {
   tsi_ssl_handshaker* impl = reinterpret_cast<tsi_ssl_handshaker*>(self);
   const unsigned char* received_bytes = handshaker_next_args->received_bytes;
@@ -2427,7 +2427,7 @@ static void ssl_handshaker_shutdown(tsi_handshaker* self) {
       signing_handle = std::move(impl->signing_handle);
     }
     if (impl->handshaker_next_args.has_value()) {
-      next_args = std::move(*impl->handshaker_next_args);
+      next_args = *impl->handshaker_next_args;
       impl->handshaker_next_args.reset();
     }
   }
@@ -2436,7 +2436,7 @@ static void ssl_handshaker_shutdown(tsi_handshaker* self) {
   }
   if (next_args.has_value()) {
     grpc_event_engine::experimental::GetDefaultEventEngine()->Run(
-        [args = std::move(*next_args)]() mutable {
+        [args = *next_args]() mutable {
           if (args.error != nullptr) {
             *args.error = "Handshaker shutdown";
           }
