@@ -2454,7 +2454,7 @@ static tsi_result ssl_handshaker_next(
     *bytes_to_send_size = impl->handshaker_next_args->bytes_to_send_size;
     *handshaker_result = impl->handshaker_next_args->handshaker_result;
     if (error != nullptr && impl->handshaker_next_args->error_ptr != nullptr) {
-      error = std::move(impl->handshaker_next_args->error_ptr);
+      error = impl->handshaker_next_args->error_ptr;
     }
     impl->handshaker_next_args.reset();
   }
