@@ -189,8 +189,7 @@ struct tsi_ssl_handshaker : public tsi_handshaker,
   // Will be set if there is a pending call to tsi_handshaker_next(),
   // or nullopt if not.
   std::optional<HandshakerNextArgs> handshaker_next_args ABSL_GUARDED_BY(mu);
-  const void MaybeSetError(std::string error)
-      ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu) {
+  void MaybeSetError(std::string error) ABSL_EXCLUSIVE_LOCKS_REQUIRED(mu) {
     if (!handshaker_next_args.has_value()) return;
     if (handshaker_next_args->error_ptr == nullptr) return;
     *handshaker_next_args->error_ptr = std::move(error);
