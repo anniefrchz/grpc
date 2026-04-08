@@ -16,8 +16,8 @@
 //
 //
 
-#ifndef GRPC_SRC_CORE_TSI_TELEMETRY_HANDSHAKER_DOMAIN_H
-#define GRPC_SRC_CORE_TSI_TELEMETRY_HANDSHAKER_DOMAIN_H
+#ifndef GRPC_SRC_CORE_HANDSHAKER_TELEMETRY_HANDSHAKER_DOMAIN_H
+#define GRPC_SRC_CORE_HANDSHAKER_TELEMETRY_HANDSHAKER_DOMAIN_H
 
 #include "src/core/telemetry/histogram.h"
 #include "src/core/telemetry/instrument.h"
@@ -40,4 +40,4 @@ class HandshakerDomain : public grpc_core::InstrumentDomain<HandshakerDomain> {
           "Duration of the handshake in microseconds", "{us}", 1 << 24, 100);
 };
 
-#endif  // GRPC_SRC_CORE_TSI_TELEMETRY_HANDSHAKER_DOMAIN_H
+#endif  // GRPC_SRC_CORE_HANDSHAKER_TELEMETRY_HANDSHAKER_DOMAIN_H

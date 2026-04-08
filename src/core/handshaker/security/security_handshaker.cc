@@ -195,8 +195,8 @@ namespace {
 void MaybeRecordHistogramResult(tsi_result status, std::string error_details,
                                 absl::Time duration,
                                 HandshakerDomain::Protocol protocol) {
-  auto storage = HandshakerDomain::GetStorage(
-      grpc_core::GlobalCollectionScope(), status, error_details, protocol);
+  auto storage = HandshakerDomain::GetStorage(GlobalCollectionScope(), status,
+                                              error_details, protocol);
   storage->Increment(HandshakerDomain::kHandshakeDuration,
                      absl::ToInt64Microseconds(duration));
 }
