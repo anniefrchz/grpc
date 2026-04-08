@@ -2006,6 +2006,7 @@
     <file baseinstalldir="/" name="src/core/tsi/ssl_transport_security_utils.cc" role="src" />
     <file baseinstalldir="/" name="src/core/tsi/ssl_transport_security_utils.h" role="src" />
     <file baseinstalldir="/" name="src/core/tsi/ssl_types.h" role="src" />
+    <file baseinstalldir="/" name="src/core/tsi/telemetry/handshaker_domain.h" role="src" />
     <file baseinstalldir="/" name="src/core/tsi/transport_security.cc" role="src" />
     <file baseinstalldir="/" name="src/core/tsi/transport_security.h" role="src" />
     <file baseinstalldir="/" name="src/core/tsi/transport_security_grpc.cc" role="src" />
